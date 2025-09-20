@@ -1,4 +1,5 @@
 Sys.setlocale("LC_TIME", "Portuguese")
+options(encoding = "UTF-8")
 
 library(shiny)
 library(rsconnect)
@@ -7,20 +8,20 @@ library(knitr)
 library(reticulate)
 
 ui <- fluidPage(
-  titlePanel("Formulário de Cadastro"),
+  titlePanel("Formul?rio de Cadastro"),
   
   sidebarLayout(
     sidebarPanel(
       textInput("nome", "Nome completo"),
-      #textInput("email", "E-mail"),
+      textInput("email", "E-mail"),
       numericInput("idade", "Idade", value = NA, min = 1, max = 120),
-      selectInput("gosta_R", "Você gosta de R?", choices = c("Sim", "Não", "Talvez")),
+      selectInput("gosta_R", "Voc? gosta de R?", choices = c("Sim", "N?o", "Talvez")),
       actionButton("enviar", "Enviar"),
       textOutput("mensagem")
     ),
     
     mainPanel(
-      h4("Última resposta enviada"),
+      h4("?ltima resposta enviada"),
       verbatimTextOutput("ultima")
     )
   )
@@ -29,7 +30,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   observeEvent(input$enviar, {
     if (input$nome == "" || input$email == "" || is.na(input$idade)) {
-      output$mensagem <- renderText("?????? Preencha todos os campos obrigatórios.")
+      output$mensagem <- renderText("?????? Preencha todos os campos obrigat?rios.")
     } else {
       resposta <- paste("Nome:", input$nome,
                         "\nEmail:", input$email,
