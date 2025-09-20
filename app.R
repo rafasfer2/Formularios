@@ -27,19 +27,26 @@ ui <- fluidPage(
   )
 )
 
+arquivo_csv <- "data/respostas.csv"
 server <- function(input, output, session) {
   observeEvent(input$enviar, {
-    if (input$nome == "" || input$email == "" || is.na(input$idade)) {
-      output$mensagem <- renderText("⚠️ Preencha todos os campos obrigatórios.")
+    nova_resposta <- data.frame(
+      Nome = input$nome,
+      Email = input$email,
+      Idade = input$idade,
+      Gosta_de_R = input$gosta_R,
+      Comentário = input$comentario,
+      Data = Sys.time()
+    )
+    
+    # Se o arquivo já existe, adiciona; senão, cria com cabeçalho
+    if (file.exists(arquivo_csv)) {
+      write.table(nova_resposta, arquivo_csv, sep = ",", row.names = FALSE, col.names = FALSE, append = TRUE)
     } else {
-      resposta <- paste("Nome:", input$nome,
-                        "\nEmail:", input$email,
-                        "\nIdade:", input$idade,
-                        "\nGosta de R:", input$gosta_R)
-      output$mensagem <- renderText("✅ Resposta enviada com sucesso!")
-      output$ultima <- renderText(resposta)
+      write.table(nova_resposta, arquivo_csv, sep = ",", row.names = FALSE, col.names = TRUE)
     }
   })
+  output$mensagem <- renderText("✅ Resposta salva com sucesso!")
 }
 
 shinyApp(ui = ui, server = server)
