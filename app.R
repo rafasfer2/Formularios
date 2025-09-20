@@ -1,4 +1,4 @@
-Sys.setlocale("LC_TIME", "Portuguese")
+Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
 options(encoding = "UTF-8")
 
 library(shiny)
