@@ -1,9 +1,9 @@
+
 library(shiny)
 library(shinythemes)
 library(shinyjs)
-library(shinyWidgets)
 
-# FunÁ„o auxiliar para rÛtulo com asterisco vermelho
+# Fun√ß√£o auxiliar para r√≥tulo com asterisco vermelho
 labelObrigatorio <- function(texto) {
   tagList(
     tags$label(
@@ -16,8 +16,7 @@ labelObrigatorio <- function(texto) {
 ui <- fluidPage(
   theme = shinytheme("flatly"),
   useShinyjs(),
-  
-  # M·scaras e estilos
+  # M√°scaras e estilos
   tags$head(
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"),
     tags$script(HTML("
@@ -63,218 +62,224 @@ ui <- fluidPage(
       }
     "))
   ),
-
-  titlePanel(tags$strong("Formul·rio de Cadastro Inicial SEMMU")),
   
-  div(class = "main-container",
-      tabsetPanel(id = "abas",
-                  tabPanel("InÌcio",
-                           div(class = "capa",
-                               h1("Bem-vindo ao Formul·rio de Cadastro Inicial"),
-                               p("Este formul·rio È utilizado para coletar dados sociodemogr·ficos das mulheres atendidas pela Rede de Atendimento SEMMU..."),
-                               tags$hr(),
-                               p("???? InstruÁıes de preenchimento"),
-                               tags$ul(
-                                 tags$li("?????? Preenchimento obrigatÛrio: Todos os campos marcados com * devem ser preenchidos."),
-                                 tags$li("???? Armazenamento local: As informaÁıes s„o salvas em formato CSV."),
-                                 tags$li("???? M˙ltiplas submissıes: VocÍ pode enviar quantas respostas forem necess·rias."),
-                                 tags$li("???? Profissional respons·vel: Registrar o nome do profissional respons·vel.")
-                               ),
-                               tags$hr(),
-                               p("??????? Notas de AtualizaÁ„o"),
-                               tags$ul(
-                                 tags$li(tags$em(tags$strong("Vers„o 2.1 de 04/09/2025:"), "Upload do Documento inserido.")),
-                                 tags$li(tags$em(tags$strong("Vers„o 2.0 de 21/07/2025:"), "PadronizaÁ„o conforme SINAN.")),
-                                 tags$li(tags$em(tags$strong("Vers„o 1.0 de 04/06/2025:"), "Primeira vers„o funcional."))
-                               ),
-                               br(),
-                               div(style = "text-align:center;", actionButton("iniciar", "Preencher formul·rio", class = "btn-success btn-lg")
-                               ),
-                               br(), br(),
-                               div(class = "rodape-inicio",
-                                   HTML("
-                                    ???? Secretaria da Mulher de Parauapebas (SEMMU)<br>
-                                    Localizada na R. Rio Dourado - Beira Rio, Parauapebas - PA, 68515-000
-                                  ")
-                               )
-                           )
-                  ),
-                  
-                  tabPanel("Rede de Atendimento SEMMU",
-                           radioButtons("rede", "Selecione a unidade de atendimento:", choices = c("CRM (Centro de ReferÍncia da Mulher)", "Casa de Mainha", "Casa Abrigo", "SEMMU AtÈ VocÍ")),
-                           
-                           conditionalPanel(
-                             condition = "input.rede == 'CRM (Centro de ReferÍncia da Mulher)'",
-                             selectInput("profissional_crm", "Profissional Respons·vel:",choices = c("Selecione", "Arlene Ferreira da Cruz Piovezan", "Juliana Pereira Cruz Menezes", "Elane Oliveira CorrÍa"))),
-                           conditionalPanel(
-                             condition = "input.rede == 'Casa de Mainha'",
-                             selectInput("profissional_mainha", "Profissional Respons·vel:", choices = c("Selecione", "Daiane Almino Ribeiro", "???Elizabeth Rodrigues de Bessa", "Fabiane Lima de Souza","Keylla Alves da Silva"))),
-                           conditionalPanel(
-                             condition = "input.rede == 'Casa Abrigo'",
-                             selectInput("profissional_abrigo", "Profissional Respons·vel:", choices = c("Selecione", "Alba Maria Rodrigues", "???Lucinei Aparecida Santos da Luz","???Eva Silva de Lima","Nat·lia de Deus")) ),
-                           conditionalPanel(
-                             condition = "input.rede == 'SEMMU AtÈ VocÍ'",
-                             tagList(
-                               selectInput("profissional_movel", "Profissional Respons·vel:",choices = c("Selecione", "Elisangela Moreira", "Eleusa","JosÈlia Viana","Sandra Ara˙jo","Keylla Alves da Silva")),
-                               selectInput("polo_visitado", "Polo Visitado:",choices = c("Selecione", "Polo 01 - Cedere 1", "Polo 02 - Palmares 2", "Polo 03 - Valentim Serra", "Polo 04 - Paulo Fonteles", "Polo 05 - Vila Carim„", "Polo 06 - Vila Brasil", "Polo 07 - Vila Alto Bonito", "Polo 08 - Vila Sans„o", "Outros")),
-                               conditionalPanel(
-                                 condition = "input.polo_visitado == 'Outros'",
-                                 textInput("polo_outros", "Informe o nome do polo visitado")
-                               )
-                             )
-                           ),
-                           actionButton("next1", "PrÛximo", class = "btn-primary")
-                  ),
-                  
-                  tabPanel("Dados Iniciais de Cadastro",
-                           labelObrigatorio("Data e hora do Cadastro"),
-                           textInput("data_manual", NULL, placeholder = "21/09/2025 13:01"),
-                           
-                           labelObrigatorio("Nome Completo da Assistida"),
-                           textInput("nome", NULL),
-                           
-                           labelObrigatorio("N˙mero do CPF"),
-                           textInput("cpf", NULL, placeholder = "000.000.000-00"),
-                           
-                           tags$label(strong("N˙mero do RG")),
-                           textInput("rg", NULL, placeholder = "00.000.000-0"),
-                           
-                           tags$label(strong("Upload do Documento")),
-                           fileInput("documento", NULL, accept = c(".pdf", ".jpg", ".png")),
-                           
-                           labelObrigatorio("(DDD) Telefone"),
-                           textInput("telefone", NULL, placeholder = "(99) 99999-9999"),
-                           
-                           labelObrigatorio("Tipo de Demanda"),
-                           selectInput("demanda", NULL, choices = c("Espont‚nea", "Encaminhada pela Rede Intersetorial", "Encaminhamento Interno da Rede SEMMU")),
-                           
-                           # SubseÁıes din‚micas
-                           conditionalPanel(
-                             condition = "input.demanda == 'Encaminhada pela Rede Intersetorial'",
-                             tags$hr(),
-                             tags$label(strong("Rede Intersetorial")),
-                             selectInput("rede_intersetorial", NULL,
-                                         choices = c("PARAPAZ", "CREAS", "CRAS", "UBS", "HGP", "UBS", "UPA", 
-                                                     "Conselho Tutelar", "DEAM", "DEACA", "MinistÈrio P˙blico",
-                                                     "SEHAB", "SEMAS", "SEMSI", "SEMED", "Outros")),
-                             tags$label(strong("ObservaÁıes de Localidade")),
-                             textInput("obs_localidade", NULL, placeholder = "Ex: Bairro distante, zona rural, etc."),
-                           ),
-                           
-                           conditionalPanel(
-                             condition = "input.demanda == 'Encaminhamento Interno da Rede SEMMU'",
-                             tags$hr(),
-                             tags$label(strong("Rede SEMMU")),
-                             selectInput("rede_semmu", NULL, choices = c("CRM", "Casa de Mainha", "Casa Abrigo", "SEMMU AtÈ VocÍ", "SEMMU Sede", "Outros"))),
-                           
-                           actionButton("prev2", "Voltar", class = "btn-secondary"),
-                           actionButton("next2", "PrÛximo", class = "btn-primary")
-                  ),
-                  tabPanel("NotificaÁ„o Individual",
-                           textInput("nome_social", "Nome Social"),
-                           
-                           textInput("data_nascimento", NULL, placeholder = "21/09/1990"),
-                           
-                           selectInput("naturalidade", "Naturalidade (CÛdigo IBGE)", choices = c("Parauapebas (1505536)", "Cana„ dos Caraj·s (1502152)", "CurionÛpolis (1502772)", "Eldorado dos Caraj·s (1502954)", "Marab· (1504208)", "BelÈm (1501402)", "Outros")),
-                           conditionalPanel(
-                             condition = "input.naturalidade == 'Outros'",
-                             textInput("naturalidade_outros", "Informe a naturalidade")
-                           ),
-                           
-                           selectInput("uf", "UF", choices = c("PA", "MA", "TO", "Outros")),
-                           conditionalPanel(
-                             condition = "input.uf == 'Outros'",
-                             textInput("uf_outros", "Informe a UF")
-                           ),
-                           
-                           numericInput("quantos_filhos", "Quantos filhos possui?", value = NA, min = 0),
-                           
-                           selectInput("gestante", "Gestante", choices = c("N„o", "1∞ Trimestre (1 a 3 meses)", "2∞ Trimestre (3 a 6 meses)","3∞ Trimestre (6 a 9 meses)", "Ignorado")),
-                           
-                           selectInput("raca_cor", "RaÁa/Cor", choices = c("Branca", "Preta", "Amarela", "Parda", "IndÌgena", "Ignorado")),
-                           
-                           selectInput("escolaridade", "Escolaridade",
-                                       choices = c("Sem escolaridade",
-                                                   "Ensino Fundamental Incompleto",
-                                                   "Ensino Fundamental Completo",
-                                                   "Ensino MÈdio Incompleto",
-                                                   "Ensino MÈdio Completo",
-                                                   "Superior Incompleto",
-                                                   "Superior Completo",
-                                                   "AlfabetizaÁ„o para adultos",
-                                                   "EducaÁ„o Especial",
-                                                   "TÈcnico/Cursos Livres",
-                                                   "N„o se aplica",
-                                                   "Ignorado")),
-                           
-                           selectInput("atividade_laboral", "Atividade Laboral", choices = c("Cuidados do Lar n„o remunerado", "AutÙnoma Formal (MEI)", "AutÙnoma Informal", "Trabalho Formal (CLT)", "Desempregada", "Estudante", "Pens„o/Aposentadoria", "Servidora P˙blica", "Outros")),
-                           conditionalPanel(
-                             condition = "input.atividade_laboral == 'Outros'",
-                             textInput("atividade_outros", "Informe a atividade laboral")
-                           ),
-                           selectInput("estado_civil", "SituaÁ„o Conjugal / Estado Civil", choices = c("Solteira", "Casada", "Separada", "Vi˙va", "Uni„o est·vel")),
-                           selectInput("deficiencia", "DeficiÍncia / Transtorno", choices = c("Auditiva", "Visual", "Intelectual", "FÌsica", "Psicossocial", "Transtorno Mental", "Transtorno de Comportamento","M˙ltipla", "N„o possui", "Outros")),
-                           conditionalPanel(
-                             condition = "input.deficiencia == 'Outros'",
-                             textInput("deficiencia_outros", "Informe a deficiÍncia ou transtorno")
-                           ),
-                           selectInput("orientacao_sexual", "OrientaÁ„o Sexual", choices = c("Heterossexual", "Homossexual", "Bissexual", "Outros")),
-                           selectInput("identidade_genero", "Identidade de GÍnero", choices = c("Mulher cisgÍnero", "Mulher transgÍnero", "Travesti", "N„o bin·ria", "Prefere n„o informar", "Outros")),
-                           
-                           actionButton("prev5", "Voltar", class = "btn-secondary"),
-                           actionButton("next5", "PrÛximo", class = "btn-primary")
-                  ),
-                  tabPanel("Dados de ResidÍncia",
-                           selectInput("municipio_residencia", "MunicÌpio de ResidÍncia (CÛdigo IBGE)", choices = c("Parauapebas (1505536)", "Cana„ dos Caraj·s (1502152)", "CurionÛpolis (1502772)", "Eldorado dos Caraj·s (1502954)", "Marab· (1504208)", "BelÈm (1501402)", "Outros")),
-                           conditionalPanel(
-                             condition = "input.municipio_residencia == 'Outros'",
-                             textInput("municipio_outros", "Informe o municÌpio de residÍncia")
-                           ),
-                           
-                           textInput("bairro", "Bairro"),
-                           textInput("logradouro", "Logradouro (Rua, Avenida, ...)"),
-                           textInput("numero", "N˙mero"),
-                           textInput("quadra", "Quadra"),
-                           textInput("lote", "Lote"),
-                           textInput("complemento", "Complemento (apto., casa, ...)"),
-                           
-                           selectInput("zona", "Zona de residÍncia", choices = c("", "Urbana", "Rural", "Periurbana", "IndÌgena", "Quilombola")),
-                           
-                           selectInput("condicao_moradia", "CondiÁ„o de Moradia", choices = c("Casa prÛpria", "Alugada", "Cedida", "OcupaÁ„o", "Abrigo", "SituaÁ„o de rua", "Outros")),
-                           conditionalPanel(
-                             condition = "input.condicao_moradia == 'Outros'",
-                             textInput("condicao_moradia_outros", "Informe a condiÁ„o de moradia")
-                           ),
-                           
-                           textInput("ubs_referencia", "UBS de ReferÍncia"),
-                           
-                           actionButton("prev6", "Voltar", class = "btn-secondary"),
-                           actionButton("next6", "PrÛximo", class = "btn-primary")
-                  ),
-                  tabPanel("DescriÁ„o da Fonte de Renda",
-                           selectInput("renda_media", "Renda MÈdia Mensal",  choices = c("Sem renda", "AtÈ 1/4 do sal·rio mÌnimo", "De 1/4 a 1/2 sal·rio mÌnimo", "De 1/2 a 1 sal·rio mÌnimo", "De 1 a 2 sal·rios mÌnimos",  "De 2 a 3 Sal·rios MÌnimos", "De 3 a 5 Sal·rios MÌnimos", "Acima de 5 sal·rios mÌnimos", "N„o informado")),
-                           
-                           selectInput("beneficio_social", "BenefÌcio Social", choices = c("Nenhum", "Bolsa FamÌlia", "BPC (BenefÌcio de PrestaÁ„o Continuada)", "AuxÌlio Brasil", "AuxÌlio Emergencial", "AuxÌlio DoenÁa", "Outros")),
-                           conditionalPanel(
-                             condition = "input.beneficio_social == 'Outros'",
-                             textInput("beneficio_social_outros", "Informe o BenefÌcio Social")
-                           ),
-                           numericInput("valor_beneficio", "Valor do BenefÌcio Social (R$)", value = NA, min = 0),
-                           numericInput("valor_renda_propria", "Valor de Renda PrÛpria (R$)", value = NA, min = 0),
-                           numericInput("valor_renda_pensao", "Valor de Renda Pens„o (R$)", value = NA, min = 0),
-                           
-                           actionButton("prev7", "Voltar", class = "btn-secondary"),
-                           actionButton("enviar", "Enviar", class = "btn-success"),
-                           verbatimTextOutput("resposta")
-                  ),
-                  tabPanel("Revis„o Final",
-                           h3("???? Revis„o dos Dados Preenchidos"),
-                           uiOutput("resumo_dados"),
-                           br(),
-                           actionButton("prev_revisao", "Voltar", class = "btn-secondary"),
-                           actionButton("confirmar_envio", "Confirmar e Enviar", class = "btn-success")
-                  )
-      )  # fim do tabsetPanel
+  titlePanel(tags$strong("Formul√°rio de Cadastro Inicial SEMMU")),
+  div(
+    class = "main-container",
+    tabsetPanel(
+      id = "abas",
+      tabPanel(
+        "In√≠cio",
+        div(
+          class = "capa",
+          h1("Bem-vindo ao Formul√°rio de Cadastro Inicial"),
+          p("Este formul√°rio √© utilizado para coletar dados sociodemogr√°ficos das mulheres atendidas pela Rede de Atendimento SEMMU..."),
+          tags$hr(),
+          p("üìã Instru√ß√µes de preenchimento"),
+          tags$ul(
+            tags$li("‚úîÔ∏è Preenchimento obrigat√≥rio: Todos os campos marcados com * devem ser preenchidos."),
+            tags$li("üìÅ Armazenamento local: As informa√ß√µes s√£o salvas em formato CSV."),
+            tags$li("üîÑ M√∫ltiplas submiss√µes: Voc√™ pode enviar quantas respostas forem necess√°rias."),
+            tags$li("üß† Profissional respons√°vel: Registrar o nome do profissional respons√°vel.")
+          ),
+          tags$hr(),
+          p("üõ†Ô∏è Notas de Atualiza√ß√£o"),
+          tags$ul(
+            tags$li(tags$em(tags$strong("Vers√£o 2.1 de 04/09/2025:"), "Upload do Documento inserido.")),
+            tags$li(tags$em(tags$strong("Vers√£o 2.0 de 21/07/2025:"), "Padroniza√ß√£o conforme SINAN.")),
+            tags$li(tags$em(tags$strong("Vers√£o 1.0 de 04/06/2025:"), "Primeira vers√£o funcional."))
+          ),
+          br(),
+          div(style = "text-align:center;", actionButton("iniciar", "Preencher formul√°rio", class = "btn-success btn-lg")
+          ),
+          br(), br(),
+          div(class = "rodape-inicio",
+              HTML(
+                "
+              üìç Secretaria da Mulher de Parauapebas (SEMMU)<br>
+              Localizada na R. Rio Dourado ‚Äì Beira Rio, Parauapebas ‚Äì PA, 68515-000
+             "
+              )
+          )
+        )
+      ),
+      tabPanel(
+        "Rede de Atendimento SEMMU",
+        radioButtons("rede", "Selecione a unidade de atendimento:", choices = c("CRM (Centro de Refer√™ncia da Mulher)", "Casa de Mainha", "Casa Abrigo", "SEMMU At√© Voc√™")),
+        
+        conditionalPanel(
+          condition = "input.rede == 'CRM (Centro de Refer√™ncia da Mulher)'",
+          selectInput("profissional_crm", "Profissional Respons√°vel:",choices = c("Selecione", "Arlene Ferreira da Cruz Piovezan", "Juliana Pereira Cruz Menezes", "Elane Oliveira Corr√™a"))),
+        conditionalPanel(
+          condition = "input.rede == 'Casa de Mainha'",
+          selectInput("profissional_mainha", "Profissional Respons√°vel:", choices = c("Selecione", "Daiane Almino Ribeiro", "‚Å†Elizabeth Rodrigues de Bessa", "Fabiane Lima de Souza","Keylla Alves da Silva"))),
+        conditionalPanel(
+          condition = "input.rede == 'Casa Abrigo'",
+          selectInput("profissional_abrigo", "Profissional Respons√°vel:", choices = c("Selecione", "Alba Maria Rodrigues", "‚Å†Lucinei Aparecida Santos da Luz","‚Å†Eva Silva de Lima","Nat√°lia de Deus")) ),
+        conditionalPanel(
+          condition = "input.rede == 'SEMMU At√© Voc√™'",
+          tagList(
+            selectInput("profissional_movel", "Profissional Respons√°vel:",choices = c("Selecione", "Elisangela Moreira", "Eleusa","Jos√©lia Viana","Sandra Ara√∫jo","Keylla Alves da Silva")),
+            selectInput("polo_visitado", "Polo Visitado:",choices = c("Selecione", "Polo 01 - Cedere 1", "Polo 02 - Palmares 2", "Polo 03 - Valentim Serra", "Polo 04 - Paulo Fonteles", "Polo 05 - Vila Carim√£", "Polo 06 - Vila Brasil", "Polo 07 - Vila Alto Bonito", "Polo 08 - Vila Sans√£o", "Outros")),
+            conditionalPanel(
+              condition = "input.polo_visitado == 'Outros'",
+              textInput("polo_outros", "Informe o nome do polo visitado")
+            )
+          )
+        ),
+        actionButton("next1", "Pr√≥ximo", class = "btn-primary")
+      ),
+      tabPanel(
+        "Dados Iniciais de Cadastro",
+        labelObrigatorio("Data e hora do Cadastro"),
+        textInput("data_manual", NULL, placeholder = "21/09/2025 13:01"),
+        
+        labelObrigatorio("Nome Completo da Assistida"),
+        textInput("nome", NULL),
+        
+        labelObrigatorio("N√∫mero do CPF"),
+        textInput("cpf", NULL, placeholder = "000.000.000-00"),
+        
+        tags$label(strong("N√∫mero do RG")),
+        textInput("rg", NULL, placeholder = "00.000.000-0"),
+        
+        tags$label(strong("Upload do Documento")),
+        fileInput("documento", NULL, accept = c(".pdf", ".jpg", ".png")),
+        
+        labelObrigatorio("(DDD) Telefone"),
+        textInput("telefone", NULL, placeholder = "(99) 99999-9999"),
+        
+        labelObrigatorio("Tipo de Demanda"),
+        selectInput("demanda", NULL, choices = c("Espont√¢nea", "Encaminhada pela Rede Intersetorial", "Encaminhamento Interno da Rede SEMMU")),
+        
+        # Subse√ß√µes din√¢micas
+        conditionalPanel(
+          condition = "input.demanda == 'Encaminhada pela Rede Intersetorial'",
+          tags$hr(),
+          tags$label(strong("Rede Intersetorial")),
+          selectInput("rede_intersetorial", NULL,choices = c("PARAPAZ", "CREAS", "CRAS", "UBS", "HGP", "UBS", "UPA", "Conselho Tutelar", "DEAM", "DEACA", "Minist√©rio P√∫blico","SEHAB", "SEMAS", "SEMSI", "SEMED", "Outros")),
+          tags$label(strong("Observa√ß√µes de Localidade")),
+          textInput("obs_localidade", NULL, placeholder = "Ex: Bairro distante, zona rural, etc.")
+        ),
+        conditionalPanel(
+          condition = "input.demanda == 'Encaminhamento Interno da Rede SEMMU'",
+          tags$hr(),
+          tags$label(strong("Rede SEMMU")),
+          selectInput("rede_semmu", NULL, choices = c("CRM", "Casa de Mainha", "Casa Abrigo", "SEMMU At√© Voc√™", "SEMMU Sede", "Outros"))),
+        
+        actionButton("prev2", "Voltar", class = "btn-secondary"),
+        actionButton("next2", "Pr√≥ximo", class = "btn-primary")
+      ),
+      tabPanel(
+        "Notifica√ß√£o Individual",
+        textInput("nome_social", "Nome Social"),
+        
+        textInput("data_nascimento", NULL, placeholder = "21/09/1990"),
+        
+        selectInput("naturalidade", "Naturalidade (C√≥digo IBGE)", choices = c("Parauapebas (1505536)", "Cana√£ dos Caraj√°s (1502152)", "Curion√≥polis (1502772)", "Eldorado dos Caraj√°s (1502954)", "Marab√° (1504208)", "Bel√©m (1501402)", "Outros")),
+        conditionalPanel(
+          condition = "input.naturalidade == 'Outros'",
+          textInput("naturalidade_outros", "Informe a naturalidade")
+        ),
+        
+        selectInput("uf", "UF", choices = c("PA", "MA", "TO", "Outros")),
+        conditionalPanel(
+          condition = "input.uf == 'Outros'",
+          textInput("uf_outros", "Informe a UF")
+        ),
+        
+        numericInput("quantos_filhos", "Quantos filhos possui?", value = NA, min = 0),
+        
+        selectInput("gestante", "Gestante", choices = c("N√£o", "1¬∞ Trimestre (1 a 3 meses)", "2¬∞ Trimestre (3 a 6 meses)","3¬∞ Trimestre (6 a 9 meses)", "Ignorado")),
+        
+        selectInput("raca_cor", "Ra√ßa/Cor", choices = c("Branca", "Preta", "Amarela", "Parda", "Ind√≠gena", "Ignorado")),
+        
+        selectInput("escolaridade", "Escolaridade",
+                    choices = c("Sem escolaridade",
+                                "Ensino Fundamental Incompleto",
+                                "Ensino Fundamental Completo",
+                                "Ensino M√©dio Incompleto",
+                                "Ensino M√©dio Completo",
+                                "Superior Incompleto",
+                                "Superior Completo",
+                                "Alfabetiza√ß√£o para adultos",
+                                "Educa√ß√£o Especial",
+                                "T√©cnico/Cursos Livres",
+                                "N√£o se aplica",
+                                "Ignorado")),
+        
+        selectInput("atividade_laboral", "Atividade Laboral", choices = c("Cuidados do Lar n√£o remunerado", "Aut√¥noma Formal (MEI)", "Aut√¥noma Informal", "Trabalho Formal (CLT)", "Desempregada", "Estudante", "Pens√£o/Aposentadoria", "Servidora P√∫blica", "Outros")),
+        conditionalPanel(
+          condition = "input.atividade_laboral == 'Outros'",
+          textInput("atividade_outros", "Informe a atividade laboral")
+        ),
+        selectInput("estado_civil", "Situa√ß√£o Conjugal / Estado Civil", choices = c("Solteira", "Casada", "Separada", "Vi√∫va", "Uni√£o est√°vel")),
+        selectInput("deficiencia", "Defici√™ncia / Transtorno", choices = c("Auditiva", "Visual", "Intelectual", "F√≠sica", "Psicossocial", "Transtorno Mental", "Transtorno de Comportamento","M√∫ltipla", "N√£o possui", "Outros")),
+        conditionalPanel(
+          condition = "input.deficiencia == 'Outros'",
+          textInput("deficiencia_outros", "Informe a defici√™ncia ou transtorno")
+        ),
+        selectInput("orientacao_sexual", "Orienta√ß√£o Sexual", choices = c("Heterossexual", "Homossexual", "Bissexual", "Outros")),
+        selectInput("identidade_genero", "Identidade de G√™nero", choices = c("Mulher cisg√™nero", "Mulher transg√™nero", "Travesti", "N√£o bin√°ria", "Prefere n√£o informar", "Outros")),
+        
+        actionButton("prev5", "Voltar", class = "btn-secondary"),
+        actionButton("next5", "Pr√≥ximo", class = "btn-primary")
+      ),
+      
+      tabPanel(
+        "Dados de Resid√™ncia",
+        selectInput("municipio_residencia", "Munic√≠pio de Resid√™ncia (C√≥digo IBGE)", choices = c("Parauapebas (1505536)", "Cana√£ dos Caraj√°s (1502152)", "Curion√≥polis (1502772)", "Eldorado dos Caraj√°s (1502954)", "Marab√° (1504208)", "Bel√©m (1501402)", "Outros")),
+        conditionalPanel(
+          condition = "input.municipio_residencia == 'Outros'",
+          textInput("municipio_outros", "Informe o munic√≠pio de resid√™ncia")
+        ),
+        
+        textInput("bairro", "Bairro"),
+        textInput("logradouro", "Logradouro (Rua, Avenida, ...)"),
+        textInput("numero", "N√∫mero"),
+        textInput("quadra", "Quadra"),
+        textInput("lote", "Lote"),
+        textInput("complemento", "Complemento (apto., casa, ...)"),
+        
+        selectInput("zona", "Zona de resid√™ncia", choices = c("", "Urbana", "Rural", "Periurbana", "Ind√≠gena", "Quilombola")),
+        
+        selectInput("condicao_moradia", "Condi√ß√£o de Moradia", choices = c("Casa pr√≥pria", "Alugada", "Cedida", "Ocupa√ß√£o", "Abrigo", "Situa√ß√£o de rua", "Outros")),
+        conditionalPanel(
+          condition = "input.condicao_moradia == 'Outros'",
+          textInput("condicao_moradia_outros", "Informe a condi√ß√£o de moradia")
+        ),
+        
+        textInput("ubs_referencia", "UBS de Refer√™ncia"),
+        
+        actionButton("prev6", "Voltar", class = "btn-secondary"),
+        actionButton("next6", "Pr√≥ximo", class = "btn-primary")
+      ),
+      tabPanel(
+        "Descri√ß√£o da Fonte de Renda",
+        selectInput("renda_media", "Renda M√©dia Mensal",  choices = c("Sem renda", "At√© 1/4 do sal√°rio m√≠nimo", "De 1/4 a 1/2 sal√°rio m√≠nimo", "De 1/2 a 1 sal√°rio m√≠nimo", "De 1 a 2 sal√°rios m√≠nimos",  "De 2 a 3 Sal√°rios M√≠nimos", "De 3 a 5 Sal√°rios M√≠nimos", "Acima de 5 sal√°rios m√≠nimos", "N√£o informado")),
+        
+        selectInput("beneficio_social", "Benef√≠cio Social", choices = c("Nenhum", "Bolsa Fam√≠lia", "BPC (Benef√≠cio de Presta√ß√£o Continuada)", "Aux√≠lio Brasil", "Aux√≠lio Emergencial", "Aux√≠lio Doen√ßa", "Outros")),
+        conditionalPanel(
+          condition = "input.beneficio_social == 'Outros'",
+          textInput("beneficio_social_outros", "Informe o Benef√≠cio Social")
+        ),
+        numericInput("valor_beneficio", "Valor do Benef√≠cio Social (R$)", value = NA, min = 0),
+        numericInput("valor_renda_propria", "Valor de Renda Pr√≥pria (R$)", value = NA, min = 0),
+        numericInput("valor_renda_pensao", "Valor de Renda Pens√£o (R$)", value = NA, min = 0),
+        
+        actionButton("prev7", "Voltar", class = "btn-secondary"),
+        actionButton("enviar", "Enviar", class = "btn-success"),
+        verbatimTextOutput("resposta")
+      ),
+      tabPanel(
+        "Revis√£o Final",
+        h3("üìã Revis√£o dos Dados Preenchidos"),
+        uiOutput("resumo_dados"),
+        br(),
+        actionButton("prev_revisao", "Voltar", class = "btn-secondary"),
+        actionButton("confirmar_envio", "Confirmar e Enviar", class = "btn-success")
+      )
+    )  # fim do tabsetPanel
   ),   # fim da main-container
   tags$footer(
     style = "
@@ -291,7 +296,7 @@ ui <- fluidPage(
           z-index: 999;
         ",
     tags$div(class = "rodape-global",
-             HTML("???? Desenvolvido por Rafael Fernandes - Professor<br>
+             HTML("üíª Desenvolvido por Rafael Fernandes ‚Äî Professor<br>
           Contato: <a href='mailto:rafasfer2@gmail.com'>rafasfer2@gmail.com</a> |
           GitHub: <a href='https://github.com/rafasfer2' target='_blank'>github.com/rafasfer2</a>")
     )
@@ -299,18 +304,16 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  # Aplica m·scaras nos campos ao carregar
+  # Aplica m√°scaras nos campos ao carregar
   observe({ session$sendCustomMessage("applyMasks", list()) })
-  
-  # NavegaÁ„o inicial
+  # Navega√ß√£o inicial
   observeEvent(input$iniciar, { updateTabsetPanel(session, "abas", selected = "Rede de Atendimento SEMMU") })
-  
-  # NavegaÁ„o entre abas
+  # Navega√ß√£o entre abas
   observeEvent(input$next1, { updateTabsetPanel(session, "abas", selected = "Dados Iniciais de Cadastro") })
   
-  observeEvent(input$prev2, { updateTabsetPanel(session, "abas", selected = "InÌcio") })
+  observeEvent(input$prev2, { updateTabsetPanel(session, "abas", selected = "In√≠cio") })
   
-  observeEvent(input$next2, { updateTabsetPanel(session, "abas", selected = "NotificaÁ„o Individual") })
+  observeEvent(input$next2, { updateTabsetPanel(session, "abas", selected = "Notifica√ß√£o Individual") })
   
   observeEvent(input$prev5, { updateTabsetPanel(session, "abas", selected = "Dados Iniciais de Cadastro") })
   
@@ -323,11 +326,13 @@ server <- function(input, output, session) {
     
     erros <- c()
     
+    # Nome Social
     if (input$nome_social == "") {
       shinyjs::addClass("nome_social", "erro")
       erros <- c(erros, "Nome Social")
     }
     
+    # Data de Nascimento
     data_valida <- tryCatch({
       as.Date(input$data_nascimento, format = "%d/%m/%Y")
     }, error = function(e) NA)
@@ -340,43 +345,47 @@ server <- function(input, output, session) {
     
     if (is.na(data_valida)) {
       shinyjs::addClass("data_nascimento", "erro")
-      erros <- c(erros, "Data de Nascimento inv·lida")
+      erros <- c(erros, "Data de Nascimento inv√°lida")
     } else if (data_valida > Sys.Date()) {
       shinyjs::addClass("data_nascimento", "erro")
       erros <- c(erros, "Data de Nascimento no futuro")
     } else if (idade < 10) {
       shinyjs::addClass("data_nascimento", "erro")
-      erros <- c(erros, "Idade mÌnima: 10 anos")
+      erros <- c(erros, "Idade m√≠nima: 10 anos")
     }
     
+    # Naturalidade
     if (input$naturalidade == "Outros" && input$naturalidade_outros == "") {
       shinyjs::addClass("naturalidade_outros", "erro")
       erros <- c(erros, "Naturalidade (Outros)")
     }
     
+    # UF
     if (input$uf == "Outros" && input$uf_outros == "") {
       shinyjs::addClass("uf_outros", "erro")
       erros <- c(erros, "UF (Outros)")
     }
     
+    # Quantos filhos
     if (is.na(input$quantos_filhos) || input$quantos_filhos < 0) {
       shinyjs::addClass("quantos_filhos", "erro")
-      erros <- c(erros, "N˙mero de filhos")
+      erros <- c(erros, "N√∫mero de filhos")
     }
     
+    # Exibir mensagem ou avan√ßar
     if (length(erros) > 0) {
       showModal(modalDialog(
-        title = "?????? Campos obrigatÛrios ou inv·lidos",
+        title = "‚ö†Ô∏è Campos obrigat√≥rios ou inv√°lidos",
         paste("Verifique os seguintes campos:", paste(erros, collapse = ", ")),
         easyClose = TRUE
       ))
     } else {
-      updateTabsetPanel(session, "abas", selected = "Dados de ResidÍncia")
+      updateTabsetPanel(session, "abas", selected = "Dados de Resid√™ncia")
     }
   })
   
   observeEvent(input$prev6, {
-    updateTabsetPanel(session, "abas", selected = "NotificaÁ„o Individual")
+    updateTabsetPanel(session, "abas", selected = "Notifica√ß√£o Individual")
   })
   
   observeEvent(input$next6, {
@@ -391,7 +400,7 @@ server <- function(input, output, session) {
     
     if (input$municipio_residencia == "Outros" && input$municipio_outros == "") {
       shinyjs::addClass("municipio_outros", "erro")
-      erros <- c(erros, "MunicÌpio (Outros)")
+      erros <- c(erros, "Munic√≠pio (Outros)")
     }
     
     if (input$bairro == "") {
@@ -406,63 +415,63 @@ server <- function(input, output, session) {
     
     if (input$numero == "") {
       shinyjs::addClass("numero", "erro")
-      erros <- c(erros, "N˙mero")
+      erros <- c(erros, "N√∫mero")
     }
     
     if (input$zona == "") {
       shinyjs::addClass("zona", "erro")
-      erros <- c(erros, "Zona de ResidÍncia")
+      erros <- c(erros, "Zona de Resid√™ncia")
     }
     
     if (input$condicao_moradia == "") {
       shinyjs::addClass("condicao_moradia", "erro")
-      erros <- c(erros, "CondiÁ„o de Moradia")
+      erros <- c(erros, "Condi√ß√£o de Moradia")
     }
     
     if (length(erros) > 0) {
       showModal(modalDialog(
-        title = "?????? Campos obrigatÛrios ou inv·lidos",
+        title = "‚ö†Ô∏è Campos obrigat√≥rios ou inv√°lidos",
         paste("Verifique os seguintes campos:", paste(erros, collapse = ", ")),
         easyClose = TRUE
       ))
     } else {
-      updateTabsetPanel(session, "abas", selected = "DescriÁ„o da fonte de renda")
+      updateTabsetPanel(session, "abas", selected = "Descri√ß√£o da fonte de renda")
     }
   })
   
   observeEvent(input$prev7, {
-    updateTabsetPanel(session, "abas", selected = "Dados de ResidÍncia")
+    updateTabsetPanel(session, "abas", selected = "Dados de Resid√™ncia")
   })
   
   observeEvent(input$enviar, {
-    updateTabsetPanel(session, "abas", selected = "Revis„o Final")
+    updateTabsetPanel(session, "abas", selected = "Revis√£o Final")
   })
   
   observeEvent(input$prev_revisao, {
-    updateTabsetPanel(session, "abas", selected = "DescriÁ„o da fonte de renda")
+    updateTabsetPanel(session, "abas", selected = "Descri√ß√£o da fonte de renda")
   })
   
   output$resumo_dados <- renderUI({
     tagList(
-      h4("???? Unidade de Atendimento"),
+      h4("üß≠ Unidade de Atendimento"),
       verbatimTextOutput("resumo_unidade"),
-      h4("???? Dados Pessoais"),
+      h4("üë§ Dados Pessoais"),
       verbatimTextOutput("resumo_pessoais"),
-      h4("???? Dados de ResidÍncia"),
+      h4("üè† Dados de Resid√™ncia"),
       verbatimTextOutput("resumo_residencia"),
-      h4("???? InformaÁıes de Renda"),
+      h4("üí∞ Informa√ß√µes de Renda"),
       verbatimTextOutput("resumo_renda")
     )
   })
   
   output$resumo_unidade <- renderText({
     profissional <- switch(input$rede,
-                           "CRM (Centro de ReferÍncia da Mulher)" = input$profissional_crm,
+                           "CRM (Centro de Refer√™ncia da Mulher)" = input$profissional_crm,
                            "Casa de Mainha" = input$profissional_mainha,
                            "Casa Abrigo" = input$profissional_abrigo,
-                           "SEMMU AtÈ VocÍ" = input$profissional_movel
+                           "SEMMU At√© Voc√™" = input$profissional_movel
     )
-    polo <- if (input$rede == "SEMMU AtÈ VocÍ") {
+    polo <- if (input$rede == "SEMMU At√© Voc√™") {
       if (input$polo_visitado == "Outros") input$polo_outros else input$polo_visitado
     } else {
       NA
@@ -475,45 +484,45 @@ server <- function(input, output, session) {
   output$resumo_pessoais <- renderText({
     paste("Nome Social:", input$nome_social,
           "\nData de Nascimento:", input$data_nascimento,
-          "\nRaÁa/Cor:", input$raca_cor,
+          "\nRa√ßa/Cor:", input$raca_cor,
           "\nEscolaridade:", input$escolaridade,
           "\nAtividade Laboral:", input$atividade_laboral,
           "\nEstado Civil:", input$estado_civil,
-          "\nDeficiÍncia:", input$deficiencia,
-          "\nOrientaÁ„o Sexual:", input$orientacao_sexual,
-          "\nIdentidade de GÍnero:", input$identidade_genero)
+          "\nDefici√™ncia:", input$deficiencia,
+          "\nOrienta√ß√£o Sexual:", input$orientacao_sexual,
+          "\nIdentidade de G√™nero:", input$identidade_genero)
   })
   
   output$resumo_residencia <- renderText({
     municipio <- if (input$municipio_residencia == "Outros") input$municipio_outros else input$municipio_residencia
-    paste("MunicÌpio:", municipio,
+    paste("Munic√≠pio:", municipio,
           "\nBairro:", input$bairro,
           "\nLogradouro:", input$logradouro,
-          "\nN˙mero:", input$numero,
+          "\nN√∫mero:", input$numero,
           "\nQuadra:", input$quadra,
           "\nLote:", input$lote,
           "\nComplemento:", input$complemento,
           "\nZona:", input$zona,
-          "\nCondiÁ„o de Moradia:", input$condicao_moradia,
-          "\nUBS de ReferÍncia:", input$ubs_referencia)
+          "\nCondi√ß√£o de Moradia:", input$condicao_moradia,
+          "\nUBS de Refer√™ncia:", input$ubs_referencia)
   })
   
   output$resumo_renda <- renderText({
-    paste("Renda MÈdia:", input$renda_media,
-          "\nBenefÌcio Social:", input$beneficio_social,
-          "\nValor do BenefÌcio (R$):", input$valor_beneficio,
-          "\nRenda PrÛpria (R$):", input$valor_renda_propria,
-          "\nRenda Pens„o (R$):", input$valor_renda_pensao)
+    paste("Renda M√©dia:", input$renda_media,
+          "\nBenef√≠cio Social:", input$beneficio_social,
+          "\nValor do Benef√≠cio (R$):", input$valor_beneficio,
+          "\nRenda Pr√≥pria (R$):", input$valor_renda_propria,
+          "\nRenda Pens√£o (R$):", input$valor_renda_pensao)
   })
   observeEvent(input$confirmar_envio, {
     profissional <- switch(input$rede,
-                           "CRM (Centro de ReferÍncia da Mulher)" = input$profissional_crm,
+                           "CRM (Centro de Refer√™ncia da Mulher)" = input$profissional_crm,
                            "Casa de Mainha" = input$profissional_mainha,
                            "Casa Abrigo" = input$profissional_abrigo,
-                           "SEMMU AtÈ VocÍ" = input$profissional_movel
+                           "SEMMU At√© Voc√™" = input$profissional_movel
     )
     
-    polo <- if (input$rede == "SEMMU AtÈ VocÍ") {
+    polo <- if (input$rede == "SEMMU At√© Voc√™") {
       if (input$polo_visitado == "Outros") input$polo_outros else input$polo_visitado
     } else {
       NA
@@ -574,13 +583,13 @@ server <- function(input, output, session) {
                 col.names = !file.exists("cadastros_semmu.csv"), append = TRUE)
     
     showModal(modalDialog(
-      title = "??? Cadastro enviado com sucesso!",
+      title = "‚úÖ Cadastro enviado com sucesso!",
       "Os dados foram registrados e salvos com sucesso.",
       easyClose = TRUE,
       footer = modalButton("Fechar")
     ))
     
-    updateTabsetPanel(session, "abas", selected = "InÌcio")
+    updateTabsetPanel(session, "abas", selected = "In√≠cio")
   })
 }
 
