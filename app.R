@@ -1,21 +1,16 @@
-
 library(shiny)
-library(shinythemes)
 library(shinyjs)
+library(shinyWidgets)
+library(shinythemes)
+library(DT)
 
 # Função auxiliar para rótulo com asterisco vermelho
-labelObrigatorio <- function(texto) {
-  tagList(
-    tags$label(
-      tags$span(strong(texto)),
-      tags$span("*", style = "color:red; margin-left:5px;")
-    )
-  )
-}
+labelObrigatorio <- function(texto) {  tagList(tags$label(tags$span(strong(texto)), tags$span("*", style = "color:red; margin-left:5px;"))) }
 
 ui <- fluidPage(
-  theme = shinytheme("flatly"),
   useShinyjs(),
+  theme = shinytheme("flatly"),
+
   # Máscaras e estilos
   tags$head(
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"),
@@ -28,7 +23,15 @@ ui <- fluidPage(
         $('#data_manual').mask('00/00/0000 00:00');
         $('#data_nascimento').mask('00/00/0000');
       });
-    ")),
+      $(document).on('click', '.editar', function() {
+        var id = $(this).attr('id').split('_')[1];
+        Shiny.setInputValue('editar_membro', parseInt(id));
+      });
+      $(document).on('click', '.remover', function() {
+        var id = $(this).attr('id').split('_')[1];
+        Shiny.setInputValue('remover_membro', parseInt(id));
+    });
+ ")),
     tags$style(HTML("
       html, body {
         height: 100%;
@@ -64,10 +67,11 @@ ui <- fluidPage(
   ),
   
   titlePanel(tags$strong("Formulário de Cadastro Inicial SEMMU")),
+ 
   div(
     class = "main-container",
     tabsetPanel(
-      id = "abas",
+      id = "abas", # 🟢 Aba 0: Início
       tabPanel(
         "Início",
         div(
@@ -93,18 +97,13 @@ ui <- fluidPage(
           div(style = "text-align:center;", actionButton("iniciar", "Preencher formulário", class = "btn-success btn-lg")
           ),
           br(), br(),
-          div(class = "rodape-inicio",
-              HTML(
-                "
-              📍 Secretaria da Mulher de Parauapebas (SEMMU)<br>
-              Localizada na R. Rio Dourado – Beira Rio, Parauapebas – PA, 68515-000
-             "
-              )
+          div(class = "rodape-inicio", HTML("📍 Secretaria da Mulher de Parauapebas (SEMMU)<br>Localizada na R. Rio Dourado – Beira Rio, Parauapebas – PA, 68515-000")
           )
         )
       ),
+      
       tabPanel(
-        "Rede de Atendimento SEMMU",
+        "Rede de Atendimento SEMMU", # 🟤 Aba 1: Rede de Atendimento SEMMU
         radioButtons("rede", "Selecione a unidade de atendimento:", choices = c("CRM (Centro de Referência da Mulher)", "Casa de Mainha", "Casa Abrigo", "SEMMU Até Você")),
         
         conditionalPanel(
@@ -120,7 +119,7 @@ ui <- fluidPage(
           condition = "input.rede == 'SEMMU Até Você'",
           tagList(
             selectInput("profissional_movel", "Profissional Responsável:",choices = c("Selecione", "Elisangela Moreira", "Eleusa","Josélia Viana","Sandra Araújo","Keylla Alves da Silva")),
-            selectInput("polo_visitado", "Polo Visitado:",choices = c("Selecione", "Polo 01 - Cedere 1", "Polo 02 - Palmares 2", "Polo 03 - Valentim Serra", "Polo 04 - Paulo Fonteles", "Polo 05 - Vila Carimã", "Polo 06 - Vila Brasil", "Polo 07 - Vila Alto Bonito", "Polo 08 - Vila Sansão", "Outros")),
+            radioButtons("polo_visitado", "Polo Visitado:",choices = c("Selecione", "Polo 01 - Cedere 1", "Polo 02 - Palmares 2", "Polo 03 - Valentim Serra", "Polo 04 - Paulo Fonteles", "Polo 05 - Vila Carimã", "Polo 06 - Vila Brasil", "Polo 07 - Vila Alto Bonito", "Polo 08 - Vila Sansão", "Outros")),
             conditionalPanel(
               condition = "input.polo_visitado == 'Outros'",
               textInput("polo_outros", "Informe o nome do polo visitado")
@@ -130,7 +129,7 @@ ui <- fluidPage(
         actionButton("next1", "Próximo", class = "btn-primary")
       ),
       tabPanel(
-        "Dados Iniciais de Cadastro",
+        "Dados Iniciais de Cadastro", # 🟡 Aba 3: Dados Iniciais de Cadastro
         labelObrigatorio("Data e hora do Cadastro"),
         textInput("data_manual", NULL, placeholder = "21/09/2025 13:01"),
         
@@ -150,14 +149,15 @@ ui <- fluidPage(
         textInput("telefone", NULL, placeholder = "(99) 99999-9999"),
         
         labelObrigatorio("Tipo de Demanda"),
-        selectInput("demanda", NULL, choices = c("Espontânea", "Encaminhada pela Rede Intersetorial", "Encaminhamento Interno da Rede SEMMU")),
+        radioButtons("demanda", NULL, choices = c("Espontânea", "Encaminhada pela Rede Intersetorial", "Encaminhamento Interno da Rede SEMMU")),
         
         # Subseções dinâmicas
         conditionalPanel(
           condition = "input.demanda == 'Encaminhada pela Rede Intersetorial'",
           tags$hr(),
           tags$label(strong("Rede Intersetorial")),
-          selectInput("rede_intersetorial", NULL,choices = c("PARAPAZ", "CREAS", "CRAS", "UBS", "HGP", "UBS", "UPA", "Conselho Tutelar", "DEAM", "DEACA", "Ministério Público","SEHAB", "SEMAS", "SEMSI", "SEMED", "Outros")),
+          
+          radioButtons("rede_intersetorial", labelObrigatorio("Rede Intersetorial"), choices = c("PARAPAZ", "CREAS", "CRAS", "UBS", "HGP", "UBS", "UPA", "Conselho Tutelar", "DEAM", "DEACA", "Ministério Público","SEHAB", "SEMAS", "SEMSI", "SEMED", "Outros")),
           tags$label(strong("Observações de Localidade")),
           textInput("obs_localidade", NULL, placeholder = "Ex: Bairro distante, zona rural, etc.")
         ),
@@ -165,85 +165,97 @@ ui <- fluidPage(
           condition = "input.demanda == 'Encaminhamento Interno da Rede SEMMU'",
           tags$hr(),
           tags$label(strong("Rede SEMMU")),
-          selectInput("rede_semmu", NULL, choices = c("CRM", "Casa de Mainha", "Casa Abrigo", "SEMMU Até Você", "SEMMU Sede", "Outros"))),
+          radioButtons("rede_semmu", labelObrigatorio("Rede SEMMU"), choices = c("CRM", "Casa de Mainha", "Casa Abrigo", "SEMMU Até Você", "SEMMU Sede", "Outros"))),
         
         actionButton("prev2", "Voltar", class = "btn-secondary"),
         actionButton("next2", "Próximo", class = "btn-primary")
       ),
       tabPanel(
-        "Notificação Individual",
+        "Notificação Individual", # 🟠 Aba 4: Notificação Individual
         textInput("nome_social", "Nome Social"),
-        
-        textInput("data_nascimento", NULL, placeholder = "21/09/1990"),
-        
-        selectInput("naturalidade", "Naturalidade (Código IBGE)", choices = c("Parauapebas (1505536)", "Canaã dos Carajás (1502152)", "Curionópolis (1502772)", "Eldorado dos Carajás (1502954)", "Marabá (1504208)", "Belém (1501402)", "Outros")),
+        textInput("data_nascimento", labelObrigatorio("Data de Nascimento"), placeholder = "21/09/1990"),
+        selectInput("naturalidade", labelObrigatorio("Naturalidade (Código IBGE)"), choices = c("Parauapebas (1505536)", "Canaã dos Carajás (1502152)", "Curionópolis (1502772)", "Eldorado dos Carajás (1502954)", "Marabá (1504208)", "Belém (1501402)", "Outros")),
         conditionalPanel(
           condition = "input.naturalidade == 'Outros'",
           textInput("naturalidade_outros", "Informe a naturalidade")
         ),
-        
-        selectInput("uf", "UF", choices = c("PA", "MA", "TO", "Outros")),
+
+        selectInput("uf", labelObrigatorio("UF"), choices = c("PA", "MA", "TO", "Outros")),
         conditionalPanel(
           condition = "input.uf == 'Outros'",
           textInput("uf_outros", "Informe a UF")
         ),
-        
-        numericInput("quantos_filhos", "Quantos filhos possui?", value = NA, min = 0),
-        
-        selectInput("gestante", "Gestante", choices = c("Não", "1° Trimestre (1 a 3 meses)", "2° Trimestre (3 a 6 meses)","3° Trimestre (6 a 9 meses)", "Ignorado")),
-        
-        selectInput("raca_cor", "Raça/Cor", choices = c("Branca", "Preta", "Amarela", "Parda", "Indígena", "Ignorado")),
-        
-        selectInput("escolaridade", "Escolaridade",
-                    choices = c("Sem escolaridade",
-                                "Ensino Fundamental Incompleto",
-                                "Ensino Fundamental Completo",
-                                "Ensino Médio Incompleto",
-                                "Ensino Médio Completo",
-                                "Superior Incompleto",
-                                "Superior Completo",
-                                "Alfabetização para adultos",
-                                "Educação Especial",
-                                "Técnico/Cursos Livres",
-                                "Não se aplica",
-                                "Ignorado")),
-        
-        selectInput("atividade_laboral", "Atividade Laboral", choices = c("Cuidados do Lar não remunerado", "Autônoma Formal (MEI)", "Autônoma Informal", "Trabalho Formal (CLT)", "Desempregada", "Estudante", "Pensão/Aposentadoria", "Servidora Pública", "Outros")),
+
+        numericInput("quantos_filhos", labelObrigatorio("Quantos filhos possui?"), value = NA, min = 0),
+        selectInput("gestante", labelObrigatorio("Gestante"), choices = c("Não", "1° Trimestre (1 a 3 meses)", "2° Trimestre (3 a 6 meses)","3° Trimestre (6 a 9 meses)", "Ignorado")),
+        selectInput("raca_cor", labelObrigatorio("Raça/Cor"), choices = c("Branca", "Preta", "Amarela", "Parda", "Indígena", "Ignorado")),
+        selectInput("escolaridade", labelObrigatorio("Escolaridade"), choices = c("Sem escolaridade", "Ensino Fundamental Incompleto", "Ensino Fundamental Completo", "Ensino Médio Incompleto", "Ensino Médio Completo", "Superior Incompleto", "Superior Completo", "Alfabetização para adultos", "Educação Especial", "Técnico/Cursos Livres", "Não se aplica", "Ignorado")),
+        selectInput("atividade_laboral", labelObrigatorio("Atividade Laboral"), choices = c("Cuidados do Lar não remunerado", "Autônoma Formal (MEI)", "Autônoma Informal", "Trabalho Formal (CLT)", "Desempregada", "Estudante", "Pensão/Aposentadoria", "Servidora Pública", "Outros")),
         conditionalPanel(
           condition = "input.atividade_laboral == 'Outros'",
           textInput("atividade_outros", "Informe a atividade laboral")
         ),
-        selectInput("estado_civil", "Situação Conjugal / Estado Civil", choices = c("Solteira", "Casada", "Separada", "Viúva", "União estável")),
-        selectInput("deficiencia", "Deficiência / Transtorno", choices = c("Auditiva", "Visual", "Intelectual", "Física", "Psicossocial", "Transtorno Mental", "Transtorno de Comportamento","Múltipla", "Não possui", "Outros")),
+        selectInput("estado_civil", labelObrigatorio("Situação Conjugal/Estado Civil"), choices = c("Solteira", "Casada", "Separada", "Viúva", "União estável")),
+        selectInput("deficiencia", labelObrigatorio("Deficiência/Transtorno"), choices = c("Não possui", "Auditiva", "Visual", "Intelectual", "Física", "Psicossocial", "Transtorno Mental", "Transtorno de Comportamento","Múltipla", "Outros")),
         conditionalPanel(
           condition = "input.deficiencia == 'Outros'",
           textInput("deficiencia_outros", "Informe a deficiência ou transtorno")
         ),
-        selectInput("orientacao_sexual", "Orientação Sexual", choices = c("Heterossexual", "Homossexual", "Bissexual", "Outros")),
-        selectInput("identidade_genero", "Identidade de Gênero", choices = c("Mulher cisgênero", "Mulher transgênero", "Travesti", "Não binária", "Prefere não informar", "Outros")),
+        selectInput("orientacao_sexual", labelObrigatorio("Orientação Sexual"), choices = c("Heterossexual", "Homossexual", "Bissexual", "Outros")),
+        selectInput("identidade_genero", labelObrigatorio("Identidade de Gênero"), choices = c("Mulher cisgênero", "Mulher transgênero", "Travesti", "Não binária", "Prefere não informar", "Outros")),
         
-        actionButton("prev5", "Voltar", class = "btn-secondary"),
-        actionButton("next5", "Próximo", class = "btn-primary")
+        actionButton("prev3", "Voltar", class = "btn-secondary"),
+        actionButton("next3", "Próximo", class = "btn-primary")
+      ),
+
+      tabPanel(
+        "Dados Familiares",
+        fluidRow(
+          column(
+            12,
+            h4("Resumo dos membros já preenchidos"),
+            DT::dataTableOutput("tabela_familia"),  # Tabela interativa
+            hr(),
+            h4("Preencher novo membro"),
+            uiOutput("familia_ui"),
+            actionButton("adicionar_familia", "Adicionar outro membro", icon = icon("plus"), class = "btn-info")
+          )
+        ),
+        actionButton("prev4", "Voltar"),
+        actionButton("next4", "Próximo", class = "btn-primary"),
+        # Scripts para capturar cliques nos botões da tabela
+        tags$script(
+          HTML(
+            "
+            $(document).on('click', '.editar', function() {
+              var id = $(this).attr('id').split('_')[1];
+              Shiny.setInputValue('editar_membro', parseInt(id));
+            });
+            $(document).on('click', '.remover', function() {
+              var id = $(this).attr('id').split('_')[1];
+              Shiny.setInputValue('remover_membro', parseInt(id));
+          });
+       "))
       ),
       
       tabPanel(
-        "Dados de Residência",
-        selectInput("municipio_residencia", "Município de Residência (Código IBGE)", choices = c("Parauapebas (1505536)", "Canaã dos Carajás (1502152)", "Curionópolis (1502772)", "Eldorado dos Carajás (1502954)", "Marabá (1504208)", "Belém (1501402)", "Outros")),
+        "Dados de Residência", # 🔵 Aba 5: Dados de Residência
+        selectInput("municipio_residencia", labelObrigatorio("Município de Residência (Código IBGE)"), choices = c("Parauapebas (1505536)", "Canaã dos Carajás (1502152)", "Curionópolis (1502772)", "Eldorado dos Carajás (1502954)", "Marabá (1504208)", "Belém (1501402)", "Outros")),
         conditionalPanel(
           condition = "input.municipio_residencia == 'Outros'",
           textInput("municipio_outros", "Informe o município de residência")
         ),
         
-        textInput("bairro", "Bairro"),
-        textInput("logradouro", "Logradouro (Rua, Avenida, ...)"),
-        textInput("numero", "Número"),
+        textInput("bairro", labelObrigatorio("Bairro")),
+        textInput("logradouro", labelObrigatorio("Logradouro (Rua, Avenida, ...)")),
+        textInput("numero", labelObrigatorio("Número")),
         textInput("quadra", "Quadra"),
         textInput("lote", "Lote"),
         textInput("complemento", "Complemento (apto., casa, ...)"),
         
-        selectInput("zona", "Zona de residência", choices = c("", "Urbana", "Rural", "Periurbana", "Indígena", "Quilombola")),
+        selectInput("zona", labelObrigatorio("Zona de residência"), choices = c("", "Urbana", "Rural", "Periurbana", "Indígena", "Quilombola")),
         
-        selectInput("condicao_moradia", "Condição de Moradia", choices = c("Casa própria", "Alugada", "Cedida", "Ocupação", "Abrigo", "Situação de rua", "Outros")),
+        selectInput("condicao_moradia", labelObrigatorio("Condição de Moradia"), choices = c("Casa própria", "Alugada", "Cedida", "Ocupação", "Abrigo", "Situação de rua", "Outros")),
         conditionalPanel(
           condition = "input.condicao_moradia == 'Outros'",
           textInput("condicao_moradia_outros", "Informe a condição de moradia")
@@ -251,31 +263,66 @@ ui <- fluidPage(
         
         textInput("ubs_referencia", "UBS de Referência"),
         
-        actionButton("prev6", "Voltar", class = "btn-secondary"),
-        actionButton("next6", "Próximo", class = "btn-primary")
+        actionButton("prev5", "Voltar", class = "btn-secondary"),
+        actionButton("next5", "Próximo", class = "btn-primary")
       ),
+      
       tabPanel(
-        "Descrição da Fonte de Renda",
-        selectInput("renda_media", "Renda Média Mensal",  choices = c("Sem renda", "Até 1/4 do salário mínimo", "De 1/4 a 1/2 salário mínimo", "De 1/2 a 1 salário mínimo", "De 1 a 2 salários mínimos",  "De 2 a 3 Salários Mínimos", "De 3 a 5 Salários Mínimos", "Acima de 5 salários mínimos", "Não informado")),
-        
-        selectInput("beneficio_social", "Benefício Social", choices = c("Nenhum", "Bolsa Família", "BPC (Benefício de Prestação Continuada)", "Auxílio Brasil", "Auxílio Emergencial", "Auxílio Doença", "Outros")),
+        "Descrição da Fonte de Renda", # 🟣 Aba 6: Descrição da fonte de renda
+        radioButtons("renda_media", "Renda Média Mensal",  choices = c("Sem renda", "Até 1/4 do salário mínimo", "De 1/4 a 1/2 salário mínimo", "De 1/2 a 1 salário mínimo", "De 1 a 2 salários mínimos",  "De 2 a 3 Salários Mínimos", "De 3 a 5 Salários Mínimos", "Acima de 5 salários mínimos", "Não informado")),
+        radioButtons("beneficio_social", "Benefício Social", choices = c("Nenhum", "Bolsa Família", "BPC (Benefício de Prestação Continuada)", "Auxílio Brasil", "Auxílio Emergencial", "Auxílio Doença", "Outros")),
         conditionalPanel(
           condition = "input.beneficio_social == 'Outros'",
           textInput("beneficio_social_outros", "Informe o Benefício Social")
         ),
+
         numericInput("valor_beneficio", "Valor do Benefício Social (R$)", value = NA, min = 0),
         numericInput("valor_renda_propria", "Valor de Renda Própria (R$)", value = NA, min = 0),
         numericInput("valor_renda_pensao", "Valor de Renda Pensão (R$)", value = NA, min = 0),
         
-        actionButton("prev7", "Voltar", class = "btn-secondary"),
+        actionButton("prev6", "Voltar", class = "btn-secondary"),
         actionButton("enviar", "Enviar", class = "btn-success"),
         verbatimTextOutput("resposta")
       ),
       tabPanel(
         "Revisão Final",
-        h3("📋 Revisão dos Dados Preenchidos"),
-        uiOutput("resumo_dados"),
-        br(),
+        fluidRow(
+          column(
+            8, 
+            h3("📋 Revisão dos Dados Preenchidos"),
+            # 🔹 Rede de Atendimento SEMMU
+            h4("Rede de Atendimento SEMMU"),
+            verbatimTextOutput("resumo_rede"),
+            actionButton("editar_rede", "Alterar", icon = icon("edit"), class = "btn-warning"),
+            hr(),
+            # 🔹 Dados Iniciais de Cadastro
+            h4("Dados Iniciais de Cadastro"),
+            uiOutput("resumo_cadastro_ui"),
+            
+            actionButton("editar_cadastro", "Alterar", icon = icon("edit"), class = "btn-warning"),
+            hr(),
+            # 🔹 Notificação Individual
+            h4("Notificação Individual"),
+            verbatimTextOutput("resumo_notificacao"),
+            actionButton("editar_notificacao", "Alterar", icon = icon("edit"), class = "btn-warning"),
+            hr(),
+            # 🔹 Dados Familiares
+            h4("Membros da Família"),
+            DT::dataTableOutput("resumo_familia"),
+            actionButton("editar_familia", "Alterar", icon = icon("edit"), class = "btn-warning"),
+            hr(),
+            # 🔹 Dados de Residência
+            h4("Dados de Residência"),
+            verbatimTextOutput("resumo_residencia"),
+            actionButton("editar_residencia", "Alterar", icon = icon("edit"), class = "btn-warning"),
+            hr(),
+            # 🔹 Fonte de Renda
+            h4("Descrição da Fonte de Renda"),
+            uiOutput("resumo_renda_ui"),
+            actionButton("editar_renda", "Alterar", icon = icon("edit"), class = "btn-warning"),
+            hr()
+          )
+        ),
         actionButton("prev_revisao", "Voltar", class = "btn-secondary"),
         actionButton("confirmar_envio", "Confirmar e Enviar", class = "btn-success")
       )
@@ -304,34 +351,64 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
+  formatar_ausente <- function(valor) {
+    if (is.null(valor) || is.na(valor) || valor == "") {
+      return("")
+    } else {
+      return(as.character(valor))
+    }
+  }
+  formatar_monetario <- function(valor) {
+    if (is.null(valor) || is.na(valor) || valor == "") {
+      return("")
+    } else {
+      return(paste0("R$ ", formatC(as.numeric(valor), format = "f", big.mark = ".", decimal.mark = ",", digits = 2)))
+    }
+  }
+  
   # Aplica máscaras nos campos ao carregar
   observe({ session$sendCustomMessage("applyMasks", list()) })
   # Navegação inicial
   observeEvent(input$iniciar, { updateTabsetPanel(session, "abas", selected = "Rede de Atendimento SEMMU") })
   # Navegação entre abas
-  observeEvent(input$next1, { updateTabsetPanel(session, "abas", selected = "Dados Iniciais de Cadastro") })
+  observeEvent(input$next1, {
+    shinyjs::removeClass("rede_intersetorial", "erro")
+    shinyjs::removeClass("rede_semmu", "erro")
+    
+    erros <- c()
+    
+    if (input$rede_intersetorial == "") {
+      shinyjs::addClass("rede_intersetorial", "erro")
+      erros <- c(erros, "Rede Intersetorial")
+    }
+    
+    if (input$rede_semmu == "") {
+      shinyjs::addClass("rede_semmu", "erro")
+      erros <- c(erros, "Rede SEMMU")
+    }
+    
+    if (length(erros) > 0) {
+      showModal(modalDialog(
+        title = "⚠️ Campos obrigatórios",
+        paste("Preencha os seguintes campos:", paste(erros, collapse = ", ")),
+        easyClose = TRUE
+      ))
+    } else {
+      updateTabsetPanel(session, "abas", selected = "Dados Iniciais de Cadastro")
+    }
+  })
   
-  observeEvent(input$prev2, { updateTabsetPanel(session, "abas", selected = "Início") })
-  
+  observeEvent(input$prev2, { updateTabsetPanel(session, "abas", selected = "Rede de Atendimento SEMMU") })
   observeEvent(input$next2, { updateTabsetPanel(session, "abas", selected = "Notificação Individual") })
-  
-  observeEvent(input$prev5, { updateTabsetPanel(session, "abas", selected = "Dados Iniciais de Cadastro") })
-  
-  observeEvent(input$next5, {
-    shinyjs::removeClass("nome_social", "erro")
+
+  observeEvent(input$prev3, { updateTabsetPanel(session, "abas", selected = "Dados Iniciais de Cadastro") })
+  observeEvent(input$next3, {
     shinyjs::removeClass("data_nascimento", "erro")
     shinyjs::removeClass("naturalidade_outros", "erro")
     shinyjs::removeClass("uf_outros", "erro")
     shinyjs::removeClass("quantos_filhos", "erro")
     
     erros <- c()
-    
-    # Nome Social
-    if (input$nome_social == "") {
-      shinyjs::addClass("nome_social", "erro")
-      erros <- c(erros, "Nome Social")
-    }
-    
     # Data de Nascimento
     data_valida <- tryCatch({
       as.Date(input$data_nascimento, format = "%d/%m/%Y")
@@ -353,25 +430,21 @@ server <- function(input, output, session) {
       shinyjs::addClass("data_nascimento", "erro")
       erros <- c(erros, "Idade mínima: 10 anos")
     }
-    
     # Naturalidade
     if (input$naturalidade == "Outros" && input$naturalidade_outros == "") {
       shinyjs::addClass("naturalidade_outros", "erro")
       erros <- c(erros, "Naturalidade (Outros)")
     }
-    
     # UF
     if (input$uf == "Outros" && input$uf_outros == "") {
       shinyjs::addClass("uf_outros", "erro")
       erros <- c(erros, "UF (Outros)")
     }
-    
     # Quantos filhos
     if (is.na(input$quantos_filhos) || input$quantos_filhos < 0) {
       shinyjs::addClass("quantos_filhos", "erro")
       erros <- c(erros, "Número de filhos")
     }
-    
     # Exibir mensagem ou avançar
     if (length(erros) > 0) {
       showModal(modalDialog(
@@ -380,15 +453,15 @@ server <- function(input, output, session) {
         easyClose = TRUE
       ))
     } else {
-      updateTabsetPanel(session, "abas", selected = "Dados de Residência")
+      updateTabsetPanel(session, "abas", selected = "Dados Familiares")
     }
   })
   
-  observeEvent(input$prev6, {
-    updateTabsetPanel(session, "abas", selected = "Notificação Individual")
-  })
-  
-  observeEvent(input$next6, {
+  observeEvent(input$prev4, { updateTabsetPanel(session, "abas", selected = "Notificação Individual") })
+  observeEvent(input$next4, { updateTabsetPanel(session, "abas", selected = "Dados de Residência") })
+
+  observeEvent(input$prev5, { updateTabsetPanel(session, "abas", selected = "Dados Familiares") })
+  observeEvent(input$next5, {
     shinyjs::removeClass("municipio_outros", "erro")
     shinyjs::removeClass("bairro", "erro")
     shinyjs::removeClass("logradouro", "erro")
@@ -435,85 +508,227 @@ server <- function(input, output, session) {
         easyClose = TRUE
       ))
     } else {
-      updateTabsetPanel(session, "abas", selected = "Descrição da fonte de renda")
+      updateTabsetPanel(session, "abas", selected = "Descrição da Fonte de Renda")
     }
   })
   
-  observeEvent(input$prev7, {
+  observeEvent(input$prev6, {updateTabsetPanel(session, "abas", selected = "Dados de Residência")})
+  observeEvent(input$enviar, {updateTabsetPanel(session, "abas", selected = "Revisão Final")})
+  
+  observeEvent(input$prev_revisao, {updateTabsetPanel(session, "abas", selected = "Descrição da Fonte de Renda")})
+  
+  # Contador de membros
+  membro_count <- reactiveVal(1)
+  
+  # Lista de dados
+  dados_familia <- reactiveVal(data.frame())
+  
+  # Renderiza campos do membro atual
+  output$familia_ui <- renderUI({
+    i <- membro_count()
+    wellPanel(
+      h5(paste("Membro", i)),
+      textInput(paste0("nome_familia_", i), labelObrigatorio("Nome da pessoa da família")),
+      selectInput(paste0("parentesco_", i), "Vínculo/grau de parentesco",  choices = c("", "Filho(a)", "Companheiro(a)", "Pai/Mãe", "Irmão(ã)", "Avô//Avó", "Outro")),
+      radioButtons(paste0("sexo_", i), "Sexo", choices = c("Feminino", "Masculino", "Outro")),
+      numericInput(paste0("idade_", i), "Idade", value = NA, min = 0),
+      radioButtons(paste0("frequenta_escola_", i), "Frequenta escola?", choices = c("Sim", "Não")),
+      radioButtons(paste0("escolaridade_", i), "Escolaridade", choices = c("Sem escolaridade", "Ensino Fundamental Incompleto", "Ensino Fundamental Completo", "Ensino Médio Incompleto", "Ensino Médio Completo", "Superior Incompleto", "Superior Completo", "Alfabetização para adultos", "Educação Especial", "Técnico/Cursos Livres", "Não se aplica", "Ignorado")),
+      textInput(paste0("reside_com_", i), "Com quem reside?")
+    )
+  })
+  
+  # Renderiza tabela com botões de ação
+  output$tabela_familia <- DT::renderDataTable({
+    df <- dados_familia()
+    if (nrow(df) == 0) return(NULL)
+    
+    df$Editar <- paste0('<button class="btn btn-warning editar" id="edit_', 1:nrow(df), '">Editar</button>')
+    df$Remover <- paste0('<button class="btn btn-danger remover" id="remove_', 1:nrow(df), '">Remover</button>')
+    
+    DT::datatable(df, escape = FALSE, selection = 'none', rownames = FALSE,
+                  options = list(dom = 't', paging = FALSE)
+    )
+  }, server = FALSE)
+  
+  observeEvent(input$adicionar_familia, {
+    i <- membro_count()
+    
+    novo_membro <- data.frame(
+      Nome = input[[paste0("nome_familia_", i)]],
+      Parentesco = input[[paste0("parentesco_", i)]],
+      Sexo = input[[paste0("sexo_", i)]],
+      Idade = input[[paste0("idade_", i)]],
+      Escola = input[[paste0("frequenta_escola_", i)]],
+      Escolaridade = input[[paste0("escolaridade_", i)]],
+      Reside_com = input[[paste0("reside_com_", i)]],
+      stringsAsFactors = FALSE
+    )
+    
+    df <- dados_familia()
+    dados_familia(rbind(df, novo_membro))
+    membro_count(i + 1)
+  })
+  # Editar membro
+  observeEvent(input$editar_membro, {
+    i <- input$editar_membro
+    membro <- dados_familia()[i, ]
+    
+    updateTextInput(session, paste0("nome_familia_", membro_count()), value = membro$Nome)
+    updateSelectInput(session, paste0("parentesco_", membro_count()), selected = membro$Parentesco)
+    updateRadioButtons(session, paste0("sexo_", membro_count()), selected = membro$Sexo)
+    updateNumericInput(session, paste0("idade_", membro_count()), value = membro$Idade)
+    updateRadioButtons(session, paste0("frequenta_escola_", membro_count()), selected = membro$Escola)
+    updateSelectInput(session, paste0("escolaridade_", membro_count()), selected = membro$Escolaridade)
+    updateTextInput(session, paste0("reside_com_", membro_count()), value = membro$Reside_com)
+    
+    df <- dados_familia()
+    df <- df[-i, ]
+    dados_familia(df)
+  })
+  
+  observeEvent(input$remover_membro, {
+    i <- input$remover_membro
+    df <- dados_familia()
+    df <- df[-i, ]
+    dados_familia(df)
+  })
+
+  # 🔹 Rede de Atendimento
+  output$resumo_rede <- renderText({
+    unidade <- NULL
+    profissional <- NULL
+    
+    if (input$profissional_crm != "") {
+      unidade <- "CRM"
+      profissional <- input$profissional_crm
+    } else if (input$profissional_mainha != "") {
+      unidade <- "Mainha"
+      profissional <- input$profissional_mainha
+    } else if (input$profissional_abrigo != "") {
+      unidade <- "Abrigo"
+      profissional <- input$profissional_abrigo
+    } else if (input$profissional_movel != "") {
+      unidade <- "Móvel"
+      profissional <- input$profissional_movel
+    }
+    
+    if (!is.null(unidade) && !is.null(profissional)) {
+      paste("Unidade:", unidade, "\nProfissional:", profissional)
+    } else {
+      "Nenhuma unidade preenchida."
+    }
+  })
+  
+  # 🔹 Dados Iniciais de Cadastro
+  output$resumo_cadastro <- renderText({
+    demanda <- formatar_ausente(input$tipo_demanda)
+    
+    origem <- ""
+    if (!is.null(input$tipo_demanda) && input$tipo_demanda == "Encaminhada pela Rede Intersetorial") {
+      origem <- paste("\nRede Intersetorial de Origem:", formatar_ausente(input$rede_intersetorial_origem))
+    } else if (!is.null(input$tipo_demanda) && input$tipo_demanda == "Encaminhamento Interno da Rede SEMMU") {
+      origem <- paste("\nUnidade da SEMMU de Origem:", formatar_ausente(input$unidade_semmu_origem))
+    }
+    
+    data_formatada <- tryCatch({
+      if (!is.null(input$data_cadastro) && input$data_cadastro != "") {
+        format(as.POSIXct(input$data_cadastro), "%d/%m/%Y %H:%M")
+      } else {
+        ""
+      }
+    }, error = function(e) {
+      ""
+    })
+    
+    paste(
+      "Data e Hora do Cadastro:", data_formatada,
+      "\nNome Completo:", formatar_ausente(input$nome_completo),
+      "\nCPF:", formatar_ausente(input$cpf),
+      "\nRG:", formatar_ausente(input$rg),
+      "\nDDD:", formatar_ausente(input$ddd),
+      "\nTipo de Demanda:", demanda,
+      origem
+    )
+  })
+  # 🔹 Notificação Individual
+  output$resumo_notificacao <- renderText({
+    paste(
+      "Nome Social:", input$nome_social,
+      "\nData de Nascimento:", input$data_nascimento,
+      "\nNaturalidade:", ifelse(input$naturalidade == "Outros", input$naturalidade_outros, input$naturalidade),
+      "\nUF:", ifelse(input$uf == "Outros", input$uf_outros, input$uf),
+      "\nFilhos:", input$quantos_filhos,
+      "\nRaça/Cor:", input$raca_cor,
+      "\nEscolaridade:", input$escolaridade,
+      "\nAtividade Laboral:", ifelse(input$atividade_laboral == "Outros", input$atividade_outros, input$atividade_laboral),
+      "\nEstado Civil:", input$estado_civil,
+      "\nDeficiência:", ifelse(input$deficiencia == "Outros", input$deficiencia_outros, input$deficiencia),
+      "\nOrientação Sexual:", input$orientacao_sexual,
+      "\nIdentidade de Gênero:", input$identidade_genero
+    )
+  })
+  
+  output$resumo_familia <- DT::renderDataTable({
+    df <- dados_familia()
+    if (nrow(df) == 0) return(NULL)
+    
+    # Remove colunas de ação se existirem
+    df <- df[, !(names(df) %in% c("Editar", "Remover"))]
+    
+    DT::datatable(df, escape = TRUE, selection = 'none', rownames = FALSE,  options = list(dom = 't', paging = FALSE)
+    )
+  }, server = FALSE)
+  
+  # 🔹 Dados de Residência
+  output$resumo_residencia <- renderText({
+    paste(
+      "Município:", ifelse(input$municipio_residencia == "Outros", input$municipio_outros, input$municipio_residencia),
+      "\nBairro:", input$bairro,
+      "\nLogradouro:", input$logradouro,
+      "\nNúmero:", input$numero,
+      "\nZona:", input$zona,
+      "\nCondição de Moradia:", input$condicao_moradia,
+      "\nUBS de Referência:", input$ubs_referencia
+    )
+  })
+  
+  # 🔹 Fonte de Renda
+  output$resumo_renda <- renderText({
+    paste(
+      "Renda Média Mensal:", input$renda_media,
+      "\nBenefício Social:", input$beneficio_social,
+      "\nValor do Benefício:", formatar_monetario(input$valor_beneficio),
+      "\nRenda Própria:", formatar_monetarioinput$valor_renda_propria),
+      "\nRenda Pensão:", formatar_monetarioinput$valor_renda_pensao)
+    )
+  })
+  
+  # 🔹 Botões de edição
+  observeEvent(input$editar_rede, {
+    updateTabsetPanel(session, "abas", selected = "Rede de Atendimento SEMMU")
+  })
+  
+  observeEvent(input$editar_cadastro, {
+    updateTabsetPanel(session, "abas", selected = "Dados Iniciais de Cadastro")
+  })
+  
+  observeEvent(input$editar_notificacao, {
+    updateTabsetPanel(session, "abas", selected = "Notificação Individual")
+  })
+  
+  observeEvent(input$editar_familia, {
+    updateTabsetPanel(session, "abas", selected = "Dados Familiares")
+  })
+  
+  observeEvent(input$editar_residencia, {
     updateTabsetPanel(session, "abas", selected = "Dados de Residência")
   })
   
-  observeEvent(input$enviar, {
-    updateTabsetPanel(session, "abas", selected = "Revisão Final")
+  observeEvent(input$editar_renda, {
+    updateTabsetPanel(session, "abas", selected = "Descrição da Fonte de Renda")
   })
   
-  observeEvent(input$prev_revisao, {
-    updateTabsetPanel(session, "abas", selected = "Descrição da fonte de renda")
-  })
-  
-  output$resumo_dados <- renderUI({
-    tagList(
-      h4("🧭 Unidade de Atendimento"),
-      verbatimTextOutput("resumo_unidade"),
-      h4("👤 Dados Pessoais"),
-      verbatimTextOutput("resumo_pessoais"),
-      h4("🏠 Dados de Residência"),
-      verbatimTextOutput("resumo_residencia"),
-      h4("💰 Informações de Renda"),
-      verbatimTextOutput("resumo_renda")
-    )
-  })
-  
-  output$resumo_unidade <- renderText({
-    profissional <- switch(input$rede,
-                           "CRM (Centro de Referência da Mulher)" = input$profissional_crm,
-                           "Casa de Mainha" = input$profissional_mainha,
-                           "Casa Abrigo" = input$profissional_abrigo,
-                           "SEMMU Até Você" = input$profissional_movel
-    )
-    polo <- if (input$rede == "SEMMU Até Você") {
-      if (input$polo_visitado == "Outros") input$polo_outros else input$polo_visitado
-    } else {
-      NA
-    }
-    paste("Unidade:", input$rede,
-          "\nProfissional:", profissional,
-          if (!is.na(polo)) paste("\nPolo Visitado:", polo) else "")
-  })
-  
-  output$resumo_pessoais <- renderText({
-    paste("Nome Social:", input$nome_social,
-          "\nData de Nascimento:", input$data_nascimento,
-          "\nRaça/Cor:", input$raca_cor,
-          "\nEscolaridade:", input$escolaridade,
-          "\nAtividade Laboral:", input$atividade_laboral,
-          "\nEstado Civil:", input$estado_civil,
-          "\nDeficiência:", input$deficiencia,
-          "\nOrientação Sexual:", input$orientacao_sexual,
-          "\nIdentidade de Gênero:", input$identidade_genero)
-  })
-  
-  output$resumo_residencia <- renderText({
-    municipio <- if (input$municipio_residencia == "Outros") input$municipio_outros else input$municipio_residencia
-    paste("Município:", municipio,
-          "\nBairro:", input$bairro,
-          "\nLogradouro:", input$logradouro,
-          "\nNúmero:", input$numero,
-          "\nQuadra:", input$quadra,
-          "\nLote:", input$lote,
-          "\nComplemento:", input$complemento,
-          "\nZona:", input$zona,
-          "\nCondição de Moradia:", input$condicao_moradia,
-          "\nUBS de Referência:", input$ubs_referencia)
-  })
-  
-  output$resumo_renda <- renderText({
-    paste("Renda Média:", input$renda_media,
-          "\nBenefício Social:", input$beneficio_social,
-          "\nValor do Benefício (R$):", input$valor_beneficio,
-          "\nRenda Própria (R$):", input$valor_renda_propria,
-          "\nRenda Pensão (R$):", input$valor_renda_pensao)
-  })
   observeEvent(input$confirmar_envio, {
     profissional <- switch(input$rede,
                            "CRM (Centro de Referência da Mulher)" = input$profissional_crm,
