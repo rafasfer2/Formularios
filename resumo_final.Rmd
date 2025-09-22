@@ -1,0 +1,47 @@
+---
+title: "Resumo Final do Cadastro"
+output: pdf_document
+params:
+  dados_iniciais: NA
+  rede_atendimento: NA
+  notificacao_individual: NA
+  membros_familia: NA
+  dados_residencia: NA
+  fonte_renda: NA
+---
+
+## 📋 Dados Iniciais de Cadastro
+
+`r params$dados_iniciais`
+
+---
+
+## 🏥 Rede de Atendimento SEMMU
+
+`r params$rede_atendimento`
+
+---
+
+## 🧍 Notificação Individual
+
+`r params$notificacao_individual`
+
+---
+
+## 🏠 Dados de Residência
+
+`r params$dados_residencia`
+
+---
+  
+  ## 💰 Fonte de Renda
+
+`r params$fonte_renda`
+
+---
+
+## 👨‍👩‍👧‍👦 Membros da Família
+
+```{r, echo=FALSE}
+knitr::kable(params$membros_familia, caption = "Membros da Família", align = "l")
+
