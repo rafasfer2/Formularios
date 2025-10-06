@@ -84,3 +84,11 @@ CREATE TABLE IF NOT EXISTS usuarios_detalhes (
   idade INTEGER,
   tempo_servico TEXT
 );
+
+-- Tabela de tokens de acesso temporário
+CREATE TABLE IF NOT EXISTS tokens_acesso (
+  token TEXT PRIMARY KEY,
+  cpf TEXT,
+  valido BOOLEAN DEFAULT TRUE,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
