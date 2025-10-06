@@ -1,0 +1,33 @@
+/* 📐 Estilo base do corpo da página */
+body {
+  font-family: var(--fonte-principal);
+  background-color: var(--cor-clara);
+  margin: 0;
+  padding: 0;
+}
+
+/* 🧭 Cabeçalho fixo com logo e título */
+.cabecalho-global {
+  background-color: var(--cor-principal);
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.cabecalho-global img { height: 100px; }
+.cabecalho-global h3 { margin: 0; font-size: 24px; }
+.cabecalho-global p { margin: 0; font-size: 14px; }
+
+/* 📎 Rodapé simples e informativo */
+.rodape-global {
+  background-color: #f8f9fa;
+  padding: 20px;
+  font-size: 14px;
+  color: #333;
+  width: 100%;
+  margin-top: auto;
+}

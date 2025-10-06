@@ -1,0 +1,30 @@
+/* 📝 Destaque ao focar em campos de texto */
+.form-control:focus {
+  border-color: var(--cor-principal);
+  box-shadow: 0 0 0 0.2rem rgba(92,42,122,0.25);
+}
+
+/* ✅ Estilo para checkbox selecionado */
+.form-check-input:checked + .form-check-label {
+  background-color: var(--cor-principal);
+  color: white;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 5px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* 🧾 Estilo padrão para labels de checkbox */
+.form-check-label {
+  display: block;
+  padding: 6px 12px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.form-check-label:hover {
+  background-color: #e6e6e6;
+}

@@ -1,0 +1,53 @@
+-- Tabela principal com dados consolidados do formulário
+CREATE TABLE cadastro_completo (
+  id SERIAL PRIMARY KEY,
+  data_hora_sistema     TIMESTAMP NOT NULL,
+  data_hora_informada   VARCHAR(20),
+  unidade               TEXT,
+  profissional          TEXT,
+  polo_visitado         TEXT,
+  nome_social           TEXT,
+  nome_completo         TEXT NOT NULL,
+  cpf                   VARCHAR(14) NOT NULL,
+  telefone              VARCHAR(20),
+  data_nascimento       DATE,
+  naturalidade          TEXT,
+  uf                    VARCHAR(2),
+  quantos_filhos        INTEGER,
+  gestante              TEXT,
+  raca_cor              TEXT,
+  escolaridade          TEXT,
+  atividade_laboral     TEXT,
+  estado_civil          TEXT,
+  deficiencia           TEXT,
+  orientacao_sexual     TEXT,
+  identidade_genero     TEXT,
+  municipio_residencia  TEXT,
+  bairro                TEXT,
+  logradouro            TEXT,
+  numero                TEXT,
+  quadra                TEXT,
+  lote                  TEXT,
+  complemento           TEXT,
+  zona_residencia       TEXT,
+  condicao_moradia      TEXT,
+  ubs_referencia        TEXT,
+  renda_media           TEXT,
+  beneficio_social      TEXT,
+  valor_beneficio       VARCHAR(20),
+  valor_renda_propria   VARCHAR(20),
+  valor_renda_pensao    VARCHAR(20)
+);
+
+-- Tabela de composição familiar vinculada ao cadastro principal
+CREATE TABLE composicao_familiar (
+  id SERIAL PRIMARY KEY,
+  id_cadastro           INTEGER REFERENCES cadastro_completo(id) ON DELETE CASCADE,
+  nome                  TEXT,
+  sexo                  TEXT,
+  parentesco            TEXT,
+  idade                 INTEGER,
+  escolaridade          TEXT,
+  frequenta_escola      TEXT,
+  reside_com            TEXT
+);

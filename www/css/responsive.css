@@ -1,0 +1,11 @@
+/* 📱 Ajustes para telas pequenas */
+@media (max-width: 768px) {
+  .cabecalho-global {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .cabecalho-global img {
+    margin-bottom: 10px;
+  }
+}

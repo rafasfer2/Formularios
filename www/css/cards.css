@@ -1,0 +1,32 @@
+/* 📋 Cartão de status padrão */
+.status-card {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-left: 5px solid #ccc;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ✅ Cartão de status concluído */
+.status-card.concluido {
+  border-left-color: var(--cor-sucesso);
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* ❌ Cartão de status pendente */
+.status-card.pendente {
+  border-left-color: var(--cor-erro);
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* 🔹 Ícone dentro do cartão */
+.status-icon {
+  font-size: 14px;
+  margin-right: 2px;
+}

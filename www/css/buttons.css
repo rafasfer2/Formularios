@@ -1,0 +1,11 @@
+/* 🔘 Botão principal com cor personalizada */
+.btn-primary {
+  background-color: var(--cor-principal);
+  border-color: var(--cor-principal);
+}
+
+/* 🔘 Efeito hover para botão principal */
+.btn-primary:hover {
+  background-color: var(--cor-secundaria);
+  border-color: var(--cor-secundaria);
+}

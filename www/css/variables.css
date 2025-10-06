@@ -1,0 +1,11 @@
+/* 🎨 Definição de cores, fontes e estilos reutilizáveis */
+:root {
+  --cor-principal: #5c2a7a;
+  --cor-secundaria: #d63384;
+  --cor-destaque: #ffc107;
+  --cor-clara: #f8f9fa;
+  --cor-escura: #2c3e50;
+  --cor-sucesso: #4CAF50;
+  --cor-erro: #f44336;
+  --fonte-principal: 'Segoe UI', sans-serif;
+}
