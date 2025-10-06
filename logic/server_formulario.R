@@ -351,7 +351,6 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
       updateTabsetPanel(session, "abas", selected = "revisao")
     }
   })
-  
   observeEvent(input$confirmar_envio, {
     # Aqui você pode incluir validações finais se quiser
     # Exemplo: verificar se todos os campos obrigatórios estão preenchidos
@@ -364,6 +363,4 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
     # Se quiser salvar em banco, planilha ou API, chame aqui a função de envio real
     # ex: enviarFormulario(input, dados_familia$tabela)
   })
-  
-
 }

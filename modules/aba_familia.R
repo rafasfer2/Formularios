@@ -7,8 +7,9 @@ aba_familia <- tabPanel(
     style = "padding: 30px;",
     
     h3("👥 Cadastro de Membros da Família"),
-    p("Preencha os dados de cada membro da família e clique em 'Adicionar Membro' para incluir na lista."),
+    p("Preencha os dados de cada membro da família e clique em 'Adicionar Membro' para incluir na lista. O CPF da mulher cadastrada será vinculado automaticamente."),
     
+    # Formulário de entrada dos dados familiares
     fluidRow(
       column(
         6,
@@ -24,7 +25,6 @@ aba_familia <- tabPanel(
             textInput("parentesco_outros", label = NULL)
           )
         )
-        
       ),
       column(
         6,
@@ -44,17 +44,20 @@ aba_familia <- tabPanel(
       )
     ),
     
+    # Botão para adicionar membro à tabela
     fluidRow(
       column(12, br(), actionButton("adicionar_membro", "➕ Adicionar Membro", class = "btn btn-success"))
     ),
     
     tags$hr(),
     
+    # Tabela de membros cadastrados
     h4("👨‍👩‍👧‍👦 Membros da Família Cadastrados"),
     DT::dataTableOutput("tabela_familia"),
     
     tags$hr(),
     
+    # Navegação entre abas
     fluidRow(
       column(6, actionButton("prev4", "⬅️ Voltar", class = "btn btn-secondary")),
       column(6, div(style = "text-align:right;", actionButton("next4", "Avançar ➡️", class = "btn btn-primary")))

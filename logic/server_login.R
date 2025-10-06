@@ -1,13 +1,13 @@
 server_login <- function(input, output, session, tela_atual, login_status) {
   observeEvent(input$entrar, {
-    # Garante que os campos foram preenchidos
     req(input$usuario, input$senha)
     
-    # Filtra credenciais válidas
+    senha_digitada <- digest::digest(input$senha, algo = "sha256")
+    
     credencial <- dplyr::filter(
       usuarios_validos,
       usuario == input$usuario,
-      senha == input$senha
+      senha == senha_digitada
     )
     
     if (nrow(credencial) == 1) {

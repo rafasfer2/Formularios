@@ -1,6 +1,6 @@
 -- Tabela principal com dados consolidados do formulário
 CREATE TABLE IF NOT EXISTS cadastro_completo (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   data_hora_sistema     TEXT,
   tempo_preenchimento   REAL,
   data_hora_informada   TEXT,
@@ -42,19 +42,23 @@ CREATE TABLE IF NOT EXISTS cadastro_completo (
 
 -- Tabela de composição familiar vinculada ao cadastro principal
 CREATE TABLE IF NOT EXISTS composicao_familiar (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   id_cadastro           INTEGER,
+  cpf_principal         TEXT,
   nome                  TEXT,
   sexo                  TEXT,
   parentesco            TEXT,
   idade                 INTEGER,
   escolaridade          TEXT,
   frequenta_escola      TEXT,
-  reside_com            TEXT
+  reside_com            TEXT,
+  FOREIGN KEY (id_cadastro) REFERENCES cadastro_completo(id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_cpf_principal ON composicao_familiar(cpf_principal);
+
 -- Tabela de usuários do sistema
-DROP TABLE IF EXISTS usuarios;
+-- DROP TABLE IF EXISTS usuarios;
 
 CREATE TABLE usuarios (
   cpf TEXT PRIMARY KEY,

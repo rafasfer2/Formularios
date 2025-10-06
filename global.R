@@ -5,6 +5,7 @@ library(bslib)
 library(DT)
 library(DBI)
 library(RSQLite)
+library(digest)
 
 # 🧠 Carregamento de funções auxiliares
 source("utils/helpers.R")         # Rótulos, validações, salvamento, etc.

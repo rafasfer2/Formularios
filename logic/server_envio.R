@@ -7,14 +7,12 @@ server_envio <- function(input, output, session, tela_atual, dados_familia) {
     tempo_total <- difftime(Sys.time(), tempo_inicio(), units = "mins")
     
     # 🔍 Validação mínima
-    if (is.null(input$nome) || input$nome == "") {
-      shinyjs::addClass("nome", "erro")
-      erros <- c(erros, "Nome Completo")
-    }
-    
-    if (is.null(input$cpf) || input$cpf == "") {
-      shinyjs::addClass("cpf", "erro")
-      erros <- c(erros, "CPF")
+    campos_obrigatorios <- list(nome = "Nome Completo", cpf = "CPF")
+    for (campo in names(campos_obrigatorios)) {
+      if (is.null(input[[campo]]) || input[[campo]] == "") {
+        shinyjs::addClass(campo, "erro")
+        erros <- c(erros, campos_obrigatorios[[campo]])
+      }
     }
     
     if (length(erros) > 0) {
@@ -83,14 +81,20 @@ server_envio <- function(input, output, session, tela_atual, dados_familia) {
       stringsAsFactors      = FALSE
     )
     
+    # 👨‍👩‍👧‍👦 Membros da família com CPF vinculado
     membros <- dados_familia$tabela
+    if (!"cpf_principal" %in% names(membros)) {
+      membros$cpf_principal <- input$cpf
+    }
     
     # 💾 Salvamento no banco de dados
     conn <- conectar_bd()
     tryCatch({
       DBI::dbWriteTable(conn, "cadastro_completo", dados, append = TRUE, row.names = FALSE)
-      DBI::dbWriteTable(conn, "composicao_familiar", membros, append = TRUE, row.names = FALSE)
-      cat("✅ Dados salvos com sucesso.\n")
+      if (nrow(membros) > 0) {
+        DBI::dbWriteTable(conn, "composicao_familiar", membros, append = TRUE, row.names = FALSE)
+      }
+      cat("✅ Cadastro salvo: CPF =", input$cpf, " | Membros:", nrow(membros), "\n")
     }, error = function(e) {
       cat("❌ Erro ao salvar dados:", conditionMessage(e), "\n")
       showModal(modalDialog(

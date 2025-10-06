@@ -1,8 +1,11 @@
-# utils/conexao_bd.R
-
 conectar_bd <- function() {
   DBI::dbConnect(
-    RSQLite::SQLite(),
-    dbname = "database/siam.sqlite"
+    RPostgres::Postgres(),
+    dbname   = "postgres",
+    host     = "aws-1-sa-east-1.pooler.supabase.com",
+    port     = 6543,
+    user     = "postgres.dnakyeffnvqcosrjumoa",
+    password = "Rafasfer2@2260",
+    sslmode  = "require"
   )
 }
