@@ -1,11 +1,11 @@
 # utils/validacao.R
 
-# Função para limpar erros visuais
+# 🔧 Remove classes de erro visual de campos
 limparErros <- function(campos) {
   lapply(campos, function(campo) shinyjs::removeClass(campo, "erro"))
 }
 
-# Função para validar campos com condição
+# ✅ Valida condição e acumula mensagem de erro
 validarCampo <- function(condicao, campo_id, mensagem, erros) {
   if (!is.null(condicao) && isTRUE(condicao)) {
     shinyjs::addClass(campo_id, "erro")
@@ -14,9 +14,19 @@ validarCampo <- function(condicao, campo_id, mensagem, erros) {
   return(erros)
 }
 
-# Função de navegação entre abas com validação
+# ⚠️ Exibe modal com mensagens de erro
+exibirErros <- function(titulo, erros) {
+  showModal(modalDialog(
+    title = titulo,
+    paste("Verifique os seguintes campos:", paste(erros, collapse = ", ")),
+    easyClose = TRUE,
+    footer = modalButton("Fechar")
+  ))
+}
+
+# 🚦 Navegação entre abas com validação específica
 navegarFormulario <- function(input, session) {
-  # Botões de avanço simples
+  # ▶️ Avanço direto entre abas
   observeEvent(input$iniciar, {
     updateTabsetPanel(session, "abas", selected = "Rede de Atendimento SEMMU")
   })
@@ -33,7 +43,7 @@ navegarFormulario <- function(input, session) {
     updateTabsetPanel(session, "abas", selected = "Revisão Final")
   })
   
-  # Botões de retorno simples
+  # ⬅️ Retorno entre abas
   observeEvent(input$prev2, {
     updateTabsetPanel(session, "abas", selected = "Rede de Atendimento SEMMU")
   })
@@ -53,7 +63,7 @@ navegarFormulario <- function(input, session) {
     updateTabsetPanel(session, "abas", selected = "Descrição da Fonte de Renda")
   })
   
-  # Validação da aba "Notificação Individual"
+  # 📋 Validação da aba "Notificação Individual"
   observeEvent(input$next3, {
     limparErros(c("data_nascimento", "naturalidade_outros", "uf_outros", "quantos_filhos"))
     erros <- c()
@@ -76,19 +86,16 @@ navegarFormulario <- function(input, session) {
     erros <- validarCampo(is.na(input$quantos_filhos) || input$quantos_filhos < 0, "quantos_filhos", "Número de filhos", erros)
     
     if (length(erros) > 0) {
-      showModal(modalDialog(
-        title = "⚠️ Campos obrigatórios ou inválidos",
-        paste("Verifique os seguintes campos:", paste(erros, collapse = ", ")),
-        easyClose = TRUE
-      ))
+      exibirErros("⚠️ Campos obrigatórios ou inválidos", erros)
     } else {
       updateTabsetPanel(session, "abas", selected = "Dados Familiares")
     }
   })
   
-  # Validação da aba "Dados de Residência"
+  # 🏠 Validação da aba "Dados de Residência"
   observeEvent(input$next5, {
-    limparErros(c("municipio_outros", "bairro", "logradouro", "numero", "zona", "condicao_moradia"))
+    campos <- c("municipio_outros", "bairro", "logradouro", "numero", "zona", "condicao_moradia")
+    limparErros(campos)
     erros <- c()
     
     erros <- validarCampo(input$municipio_residencia == "Outros" && input$municipio_outros == "", "municipio_outros", "Município (Outros)", erros)
@@ -99,11 +106,7 @@ navegarFormulario <- function(input, session) {
     erros <- validarCampo(input$condicao_moradia == "", "condicao_moradia", "Condição de Moradia", erros)
     
     if (length(erros) > 0) {
-      showModal(modalDialog(
-        title = "⚠️ Campos obrigatórios ou inválidos",
-        paste("Verifique os seguintes campos:", paste(erros, collapse = ", ")),
-        easyClose = TRUE
-      ))
+      exibirErros("⚠️ Campos obrigatórios ou inválidos", erros)
     } else {
       updateTabsetPanel(session, "abas", selected = "Descrição da Fonte de Renda")
     }

@@ -1,27 +1,46 @@
 server_login <- function(input, output, session, tela_atual, login_status) {
-  observeEvent(input$entrar, {
-    req(input$usuario, input$senha)
+  observeEvent(input$botao_login, {
+    usuario_digitado <- input$usuario
+    senha_digitada <- input$senha
     
-    senha_digitada <- digest::digest(input$senha, algo = "sha256")
+    # Verifica se o usuário existe
+    usuario_encontrado <- usuarios_validos %>%
+      filter(usuario == usuario_digitado)
     
-    credencial <- dplyr::filter(
-      usuarios_validos,
-      usuario == input$usuario,
-      senha == senha_digitada
-    )
-    
-    if (nrow(credencial) == 1) {
-      login_status$autenticado <- TRUE
-      login_status$nome <- credencial$nome
-      login_status$perfil <- credencial$perfil
-      tela_atual("painel")
+    if (nrow(usuario_encontrado) == 1) {
+      senha_hash <- digest::digest(senha_digitada, algo = "sha256")
       
-      shinyjs::hide("erro_login")
-      limparErros(c("usuario", "senha"))
+      if (senha_hash == usuario_encontrado$senha) {
+        # Autenticação bem-sucedida
+        login_status$autenticado <- TRUE
+        login_status$nome <- usuario_encontrado$nome
+        login_status$perfil <- usuario_encontrado$perfil
+        
+        showModal(modalDialog(
+          title = "Login realizado com sucesso!",
+          paste("Bem-vindo(a),", usuario_encontrado$nome),
+          easyClose = TRUE,
+          footer = NULL
+        ))
+        
+        tela_atual("painel")
+      } else {
+        # Senha incorreta
+        showModal(modalDialog(
+          title = "Erro de autenticação",
+          "Senha incorreta. Tente novamente.",
+          easyClose = TRUE,
+          footer = NULL
+        ))
+      }
     } else {
-      shinyjs::show("erro_login")
-      shinyjs::addClass("usuario", "erro")
-      shinyjs::addClass("senha", "erro")
+      # Usuário não encontrado
+      showModal(modalDialog(
+        title = "Usuário não encontrado",
+        "Verifique o nome de usuário digitado.",
+        easyClose = TRUE,
+        footer = NULL
+      ))
     }
   })
 }

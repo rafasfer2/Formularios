@@ -4,14 +4,22 @@ source("ui_painel.R")       # Tela intermediária com boas-vindas
 source("ui_formulario.R")   # Formulário completo com todas as abas
 
 # ⚙️ Carregamento das lógicas modulares
-source("logic/server_login.R")       # Autenticação
-source("logic/server_dashboard.R")   # Painel intermediário
-source("logic/server_formulario.R")  # Navegação e validação do formulário
-source("logic/server_envio.R")       # Envio final do formulário
+source("logic/server_login.R")        # Autenticação
+source("logic/server_dashboard.R")    # Painel intermediário
+source("logic/server_formulario.R")   # Navegação e validação do formulário
+source("logic/server_envio.R")        # Envio dos dados ao Supabase
 source("logic/server_resumo.R", local = TRUE)  # Geração do resumo consolidado
 
 # 🚀 Inicialização do servidor Shiny
 server <- function(input, output, session) {
+  message("🚀 Servidor Shiny iniciado")
+  
+  # 🔄 Sincronização automática com Supabase ao iniciar o app
+  try({
+    source("utils/sincronizar_supabase.R")
+    sincronizar_supabase()
+    message("✅ Banco sincronizado com Supabase")
+  }, silent = TRUE)
   
   # 🔄 Estado da tela atual: login, painel ou formulário
   tela_atual <- reactiveVal("login")
@@ -38,17 +46,17 @@ server <- function(input, output, session) {
   # 🔐 Autenticação
   server_login(input, output, session, tela_atual, login_status)
   
-  # 🧭 Painel intermediário com boas-vindas
+  # 🧭 Painel intermediário
   server_dashboard(input, output, session, tela_atual, login_status)
   
-  # 📝 Navegação e validação do formulário
-  server_formulario(input, output, session, tela_atual, dados_familia)
+  # 📝 Formulário completo
+  server_formulario(input, output, session, tela_atual, dados_familia, login_status)
   
-  # 📤 Envio final do formulário (agora com tempo de preenchimento)
-  server_envio(input, output, session, tela_atual, dados_familia)
-  
-  # 📋 Geração do resumo final
+  # 📋 Resumo final
   server_resumo(input, output, session, dados_familia)
+  
+  # 📤 Envio dos dados
+  server_envio(input, output, session, tempo_inicio, reactive(email_usuario = login_status$nome))
   
   # 🖥️ Renderização condicional da interface principal
   output$tela_principal <- renderUI({
@@ -58,6 +66,8 @@ server <- function(input, output, session) {
       painel_ui
     } else if (tela_atual() == "formulario") {
       ui_formulario
+    } else {
+      div(h3("Erro: tela não reconhecida"))
     }
   })
 }

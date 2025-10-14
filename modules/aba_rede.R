@@ -73,9 +73,9 @@ aba_rede <- tabPanel(
           choices = c(
             "Selecione",
             "Elisangela Moreira",
-            "Eleusa",
-            "Josélia Viana",
-            "Sandra Araújo",
+            "Eleusa Maria dos Santos Salustriano",
+            "Josélia Sousa Viana",
+            "Sandra de Fátima Martins da Silva Araújo",
             "Keylla Alves da Silva"
           )
         ),

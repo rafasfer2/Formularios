@@ -8,20 +8,6 @@ labelObrigatorio <- function(texto) {
   )
 }
 
-# 🧹 Remove classes de erro visual de campos
-limparErros <- function(campos) {
-  lapply(campos, function(campo) shinyjs::removeClass(campo, "erro"))
-}
-
-# ✅ Valida condição e acumula mensagem de erro
-validarCampo <- function(condicao, id, mensagem, erros) {
-  if (condicao) {
-    shinyjs::addClass(id, "erro")
-    erros <- c(erros, mensagem)
-  }
-  return(erros)
-}
-
 # 🆔 Gera um ID único para cada cadastro
 gerarID <- function() {
   paste0("SIAM-", format(Sys.time(), "%Y%m%d%H%M%S"))

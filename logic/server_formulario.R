@@ -1,15 +1,15 @@
-server_formulario <- function(input, output, session, tela_atual, dados_familia) {
-  
-  # Inicializa contador de ID
-  id_membro <- reactiveVal(1)
+server_formulario <- function(input, output, session, tela_atual, dados_familia, login_status) {
+  # ⏱️ Tempo de início do preenchimento
   tempo_inicio <- reactiveVal(Sys.time())
+  id_membro <- reactiveVal(1)
   
-  # Adiciona membro à tabela
+  # ➕ Adiciona membro à tabela
   observeEvent(input$adicionar_membro, {
-    shinyjs::removeClass(selector = ".erro")  # Limpa erros visuais anteriores
-    erros <- c()
+    limparErros(c(
+      "nome_familiar", "sexo_familiar", "parentesco", "idade_familiar",
+      "escolaridade_familiar", "frequenta_escola", "reside_com", "parentesco_outros"
+    ))
     
-    # Validação dos campos obrigatórios
     campos <- list(
       nome_familiar = input$nome_familiar,
       sexo_familiar = input$sexo_familiar,
@@ -20,33 +20,20 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
       reside_com = input$reside_com
     )
     
-    for (campo in names(campos)) {
-      if (is.null(campos[[campo]]) || campos[[campo]] == "") {
-        shinyjs::addClass(campo, "erro")
-        erros <- c(erros, campo)
-      }
-    }
+    erros <- names(Filter(function(x) is.null(x) || x == "", campos))
     
-    # Validação do campo condicional "parentesco_outros"
     if (input$parentesco == "Outro" && (is.null(input$parentesco_outros) || input$parentesco_outros == "")) {
       shinyjs::addClass("parentesco_outros", "erro")
       erros <- c(erros, "parentesco_outros")
     }
     
     if (length(erros) > 0) {
-      showModal(modalDialog(
-        title = "⚠️ Campos obrigatórios não preenchidos",
-        paste("Preencha os seguintes campos:", paste(erros, collapse = ", ")),
-        easyClose = TRUE,
-        footer = modalButton("Fechar")
-      ))
+      exibirErros("⚠️ Campos obrigatórios não preenchidos", erros)
       return()
     }
     
-    # Captura do parentesco final
     parentesco_final <- if (input$parentesco == "Outro") input$parentesco_outros else input$parentesco
     
-    # Criação do novo membro
     novo_membro <- data.frame(
       ID = id_membro(),
       Nome = input$nome_familiar,
@@ -59,11 +46,10 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
       stringsAsFactors = FALSE
     )
     
-    # Atualiza tabela reativa
     dados_familia$tabela <- rbind(dados_familia$tabela, novo_membro)
     id_membro(id_membro() + 1)
     
-    # Limpa os campos
+    # 🔄 Limpa os campos
     updateTextInput(session, "nome_familiar", value = "")
     updateRadioButtons(session, "sexo_familiar", selected = character(0))
     updateRadioButtons(session, "parentesco", selected = character(0))
@@ -74,7 +60,7 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
     updateRadioButtons(session, "reside_com", selected = character(0))
   })
   
-  # Renderiza tabela com botão de remoção
+  # 📋 Renderiza tabela com botão de remoção
   output$tabela_familia <- DT::renderDataTable({
     df <- dados_familia$tabela
     if (nrow(df) == 0) return(NULL)
@@ -92,14 +78,13 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
     )
   })
   
-  # Remove membro da tabela
+  # ❌ Remove membro da tabela
   observeEvent(input$remover_membro, {
     df <- dados_familia$tabela
-    df <- df[df$ID != input$remover_membro, ]
-    dados_familia$tabela <- df
+    dados_familia$tabela <- df[df$ID != input$remover_membro, ]
   })
   
-  # Atualiza bairro com base na UBS
+  # 🏘️ Atualiza bairro com base na UBS
   observeEvent(input$ubs_referencia, {
     if (input$ubs_referencia != "Outros") {
       bairro_ubs <- switch(
@@ -115,30 +100,36 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
         "UBS Cidade Nova" = "Cidade Nova",
         "UBS Jardim Canadá" = "Jardim Canadá",
         "UBS Grazielly Caetano" = "Cidade Jardim",
-        ""
+        NULL
       )
-      updateTextInput(inputId = "bairro", value = bairro_ubs)
+      updateTextInput(inputId = "bairro", value = bairro_ubs %||% "")
     }
   })
   
-  # Navegação entre abas
-  observeEvent(input$iniciar_formulario, { tela_atual("formulario"); updateTabsetPanel(session, "abas", selected = "rede") })
+  # 🧭 Navegação entre abas
+  observeEvent(input$iniciar_formulario, {
+    tela_atual("formulario")
+    updateTabsetPanel(session, "abas", selected = "rede")
+  })
+
+  # ⬅️ Botões de retorno
   observeEvent(input$prev2, { updateTabsetPanel(session, "abas", selected = "rede") })
   observeEvent(input$prev3, { updateTabsetPanel(session, "abas", selected = "cadastro") })
   observeEvent(input$prev4, { updateTabsetPanel(session, "abas", selected = "notificacao") })
   observeEvent(input$prev5, { updateTabsetPanel(session, "abas", selected = "familia") })
   observeEvent(input$prev6, { updateTabsetPanel(session, "abas", selected = "residencia") })
   observeEvent(input$prev7, { updateTabsetPanel(session, "abas", selected = "renda") })
+  
+  # ➡️ Avanço: Rede de Atendimento
   observeEvent(input$next1, {
+    limparErros(c("rede", "profissional_crm", "profissional_mainha", "profissional_abrigo", "profissional_movel", "polo_visitado", "polo_outros"))
     erros <- c()
     
-    # Valida unidade
     if (is.null(input$rede) || input$rede == "") {
       shinyjs::addClass("rede", "erro")
       erros <- c(erros, "Unidade de atendimento")
     }
     
-    # Valida profissional conforme unidade
     profissional <- switch(input$rede,
                            "CRM (Centro de Referência da Mulher)" = input$profissional_crm,
                            "Casa de Mainha" = input$profissional_mainha,
@@ -158,94 +149,54 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
       erros <- c(erros, "Profissional Responsável")
     }
     
-    # Valida polo se for SEMMU Até Você
     if (input$rede == "SEMMU Até Você") {
       if (is.null(input$polo_visitado) || input$polo_visitado == "Selecione" || input$polo_visitado == "") {
         shinyjs::addClass("polo_visitado", "erro")
         erros <- c(erros, "Polo Visitado")
       }
-      
       if (input$polo_visitado == "Outros" && (is.null(input$polo_outros) || input$polo_outros == "")) {
         shinyjs::addClass("polo_outros", "erro")
         erros <- c(erros, "Nome do Polo (Outros)")
       }
     }
     
-    # Exibe erros ou avança
     if (length(erros) > 0) {
-      showModal(modalDialog(
-        title = "⚠️ Campos obrigatórios não preenchidos",
-        paste("Preencha os seguintes campos:", paste(erros, collapse = ", ")),
-        easyClose = TRUE
-      ))
+      exibirErros("⚠️ Campos obrigatórios não preenchidos", erros)
     } else {
       updateTabsetPanel(session, "abas", selected = "cadastro")
     }
   })
+  
+  # ➡️ Avanço: Dados Iniciais
   observeEvent(input$next2, {
-    shinyjs::removeClass(selector = ".erro")  # Limpa erros anteriores
+    limparErros(c("data_manual", "nome", "cpf", "telefone", "demanda", "rede_intersetorial", "rede_outros", "rede_semmu"))
     erros <- c()
     
-    # Campos obrigatórios fixos
-    if (is.null(input$data_manual) || input$data_manual == "") {
-      shinyjs::addClass("data_manual", "erro")
-      erros <- c(erros, "Data e hora do Cadastro")
-    }
+    if (input$data_manual == "") erros <- c(erros, "Data e hora do Cadastro")
+    if (input$nome == "") erros <- c(erros, "Nome Completo da Assistida")
+    if (input$cpf == "") erros <- c(erros, "Número do CPF")
+    if (input$telefone == "") erros <- c(erros, "(DDD) Telefone")
+    if (input$demanda == "") erros <- c(erros, "Tipo de Demanda")
     
-    if (is.null(input$nome) || input$nome == "") {
-      shinyjs::addClass("nome", "erro")
-      erros <- c(erros, "Nome Completo da Assistida")
-    }
-    
-    if (is.null(input$cpf) || input$cpf == "") {
-      shinyjs::addClass("cpf", "erro")
-      erros <- c(erros, "Número do CPF")
-    }
-    
-    if (is.null(input$telefone) || input$telefone == "") {
-      shinyjs::addClass("telefone", "erro")
-      erros <- c(erros, "(DDD) Telefone")
-    }
-    
-    if (is.null(input$demanda) || input$demanda == "") {
-      shinyjs::addClass("demanda", "erro")
-      erros <- c(erros, "Tipo de Demanda")
-    }
-    
-    # Campos condicionais: Rede Intersetorial
     if (input$demanda == "Encaminhada pela Rede Intersetorial") {
-      if (is.null(input$rede_intersetorial) || input$rede_intersetorial == "") {
-        shinyjs::addClass("rede_intersetorial", "erro")
-        erros <- c(erros, "Rede Intersetorial")
-      }
-      
-      if (input$rede_intersetorial == "Outros" && (is.null(input$rede_outros) || input$rede_outros == "")) {
-        shinyjs::addClass("rede_outros", "erro")
-        erros <- c(erros, "Rede Intersetorial (Outros)")
-      }
+      if (input$rede_intersetorial == "") erros <- c(erros, "Rede Intersetorial")
+      if (input$rede_intersetorial == "Outros" && input$rede_outros == "") erros <- c(erros, "Rede Intersetorial (Outros)")
     }
     
-    # Campos condicionais: Rede SEMMU
     if (input$demanda == "Encaminhamento Interno da Rede SEMMU") {
-      if (is.null(input$rede_semmu) || input$rede_semmu == "") {
-        shinyjs::addClass("rede_semmu", "erro")
-        erros <- c(erros, "Rede SEMMU")
-      }
+      if (input$rede_semmu == "") erros <- c(erros, "Rede SEMMU")
     }
     
-    # Exibe modal ou avança
     if (length(erros) > 0) {
-      showModal(modalDialog(
-        title = "⚠️ Campos obrigatórios não preenchidos",
-        paste("Preencha os seguintes campos:", paste(erros, collapse = ", ")),
-        easyClose = TRUE
-      ))
+      exibirErros("⚠️ Campos obrigatórios não preenchidos", erros)
     } else {
       updateTabsetPanel(session, "abas", selected = "notificacao")
     }
   })
+  
+  # ➡️ Avanço: Notificação Individual
   observeEvent(input$next3, {
-    limparErros(c("nome_social", "data_nascimento", "naturalidade_outros", "uf_outros", "quantos_filhos"))
+    limparErros(c("nome_social", "data_nascimento", "naturalidade_outros", "uf_outros"))
     erros <- c()
     
     data_valida <- tryCatch({ as.Date(input$data_nascimento, format = "%d/%m/%Y") }, error = function(e) NA)
@@ -256,111 +207,196 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia)
     erros <- validarCampo(!is.na(idade) && idade < 10, "data_nascimento", paste0("Idade mínima: 10 anos (atual: ", round(idade, 1), ")"), erros)
     erros <- validarCampo(input$naturalidade == "Outros" && input$naturalidade_outros == "", "naturalidade_outros", "Naturalidade (Outros)", erros)
     erros <- validarCampo(input$uf == "Outros" && input$uf_outros == "", "uf_outros", "UF (Outros)", erros)
-    #erros <- validarCampo(is.na(input$quantos_filhos) || input$quantos_filhos < 0, "quantos_filhos", "Número de filhos", erros)
     
     if (length(erros) > 0) {
-      showModal(modalDialog(
-        title = "⚠️ Campos obrigatórios ou inválidos",
-        paste("Verifique os seguintes campos:", paste(erros, collapse = ", ")),
-        easyClose = TRUE
-      ))
+      exibirErros("⚠️ Campos obrigatórios ou inválidos", erros)
     } else {
       updateTabsetPanel(session, "abas", selected = "familia")
     }
   })
-  observeEvent(input$next4, { updateTabsetPanel(session, "abas", selected = "residencia") })
+  
+  # ➡️ Avanço: Dados Familiares → Residência
+  observeEvent(input$next4, {
+    updateTabsetPanel(session, "abas", selected = "residencia")
+  })
+  # ➡️ Avanço: Dados de Residência → Renda
   observeEvent(input$next5, {
-    shinyjs::removeClass(selector = ".erro")  # Limpa erros anteriores
+    limparErros(c("municipio_outros", "bairro", "condicao_moradia"))
     erros <- c()
     
-    # Validação dos campos obrigatórios
-    if (input$municipio_residencia == "Outros" && (is.null(input$municipio_outros) || input$municipio_outros == "")) {
-      shinyjs::addClass("municipio_outros", "erro")
-      erros <- c(erros, "Município (Outros)")
-    }
+    erros <- validarCampo(input$municipio_residencia == "Outros" && input$municipio_outros == "", "municipio_outros", "Município (Outros)", erros)
+    erros <- validarCampo(input$bairro == "", "bairro", "Bairro", erros)
+    erros <- validarCampo(input$condicao_moradia == "", "condicao_moradia", "Condição de Moradia", erros)
     
-    if (is.null(input$bairro) || input$bairro == "") {
-      shinyjs::addClass("bairro", "erro")
-      erros <- c(erros, "Bairro")
-    }
-    
-    if (is.null(input$condicao_moradia) || input$condicao_moradia == "") {
-      shinyjs::addClass("condicao_moradia", "erro")
-      erros <- c(erros, "Condição de Moradia")
-    }
-    
-    # Exibe modal ou avança
     if (length(erros) > 0) {
-      showModal(modalDialog(
-        title = "⚠️ Campos obrigatórios não preenchidos",
-        paste("Preencha os seguintes campos:", paste(erros, collapse = ", ")),
-        easyClose = TRUE
-      ))
+      exibirErros("⚠️ Campos obrigatórios não preenchidos", erros)
     } else {
       updateTabsetPanel(session, "abas", selected = "renda")
     }
   })
+  
+  # ➡️ Avanço: Renda → Revisão
   observeEvent(input$next6, {
-    shinyjs::removeClass(selector = ".erro")  # Limpa erros anteriores
+    limparErros(c("renda_media", "beneficio_social", "beneficio_social_outros", "valor_beneficio", "valor_renda_propria", "valor_renda_pensao"))
     erros <- c()
     
-    # Renda média mensal
-    if (is.null(input$renda_media) || input$renda_media == "") {
-      shinyjs::addClass("renda_media", "erro")
-      erros <- c(erros, "Renda Média Mensal")
-    }
+    erros <- validarCampo(input$renda_media == "", "renda_media", "Renda Média Mensal", erros)
+    erros <- validarCampo(input$beneficio_social == "", "beneficio_social", "Benefício Social", erros)
+    erros <- validarCampo(input$beneficio_social == "Outros" && input$beneficio_social_outros == "", "beneficio_social_outros", "Informe o Benefício Social (Outros)", erros)
+    erros <- validarCampo(input$valor_beneficio == "", "valor_beneficio", "Valor do Benefício Social", erros)
+    erros <- validarCampo(input$valor_renda_propria == "", "valor_renda_propria", "Valor de Renda Própria", erros)
+    erros <- validarCampo(input$valor_renda_pensao == "", "valor_renda_pensao", "Valor de Renda Pensão", erros)
     
-    # Benefício social
-    if (is.null(input$beneficio_social) || input$beneficio_social == "") {
-      shinyjs::addClass("beneficio_social", "erro")
-      erros <- c(erros, "Benefício Social")
-    }
-    
-    # Benefício Social (Outros)
-    if (input$beneficio_social == "Outros" && (is.null(input$beneficio_social_outros) || input$beneficio_social_outros == "")) {
-      shinyjs::addClass("beneficio_social_outros", "erro")
-      erros <- c(erros, "Informe o Benefício Social (Outros)")
-    }
-    
-    # Valor do benefício
-    if (is.null(input$valor_beneficio) || input$valor_beneficio == "") {
-      shinyjs::addClass("valor_beneficio", "erro")
-      erros <- c(erros, "Valor do Benefício Social")
-    }
-    
-    # Valor de renda própria
-    if (is.null(input$valor_renda_propria) || input$valor_renda_propria == "") {
-      shinyjs::addClass("valor_renda_propria", "erro")
-      erros <- c(erros, "Valor de Renda Própria")
-    }
-    
-    # Valor de pensão
-    if (is.null(input$valor_renda_pensao) || input$valor_renda_pensao == "") {
-      shinyjs::addClass("valor_renda_pensao", "erro")
-      erros <- c(erros, "Valor de Renda Pensão")
-    }
-    
-    # Exibe modal ou avança
     if (length(erros) > 0) {
-      showModal(modalDialog(
-        title = "⚠️ Campos obrigatórios não preenchidos",
-        paste("Preencha os seguintes campos:", paste(erros, collapse = ", ")),
-        easyClose = TRUE
-      ))
+      exibirErros("⚠️ Campos obrigatórios não preenchidos", erros)
     } else {
       updateTabsetPanel(session, "abas", selected = "revisao")
     }
   })
+  
+  # ✅ Envio final do formulário
   observeEvent(input$confirmar_envio, {
-    # Aqui você pode incluir validações finais se quiser
-    # Exemplo: verificar se todos os campos obrigatórios estão preenchidos
+    limparErros(c("nome", "cpf"))
+    erros <- c()
     
-    # Simulação de envio (substitua pela lógica real)
-    output$resposta_final <- renderText({
-      "✅ Formulário enviado com sucesso! Seus dados foram registrados no sistema."
+    req(tempo_inicio())
+    tempo_total <- difftime(Sys.time(), tempo_inicio(), units = "mins")
+    
+    campos_obrigatorios <- list(nome = "Nome Completo", cpf = "CPF")
+    for (campo in names(campos_obrigatorios)) {
+      if (is.null(input[[campo]]) || input[[campo]] == "") {
+        shinyjs::addClass(campo, "erro")
+        erros <- c(erros, campos_obrigatorios[[campo]])
+      }
+    }
+    
+    if (length(erros) > 0) {
+      exibirErros("⚠️ Campos obrigatórios ausentes", erros)
+      return()
+    }
+    
+    profissional <- switch(input$rede,
+                           "CRM (Centro de Referência da Mulher)" = input$profissional_crm,
+                           "Casa de Mainha" = input$profissional_mainha,
+                           "Casa Abrigo" = input$profissional_abrigo,
+                           "SEMMU Até Você" = input$profissional_movel,
+                           NULL
+    )
+    
+    polo <- if (input$rede == "SEMMU Até Você") {
+      if (input$polo_visitado == "Outros") input$polo_outros else input$polo_visitado
+    } else NA
+    
+    safe <- function(x) if (is.null(x) || length(x) == 0) NA else x
+    
+    membros <- dados_familia$tabela
+    
+    # Garante que todos os membros tenham o CPF principal vinculado corretamente
+    if (!"cpf_principal" %in% names(membros) || any(is.na(membros$cpf_principal))) {
+      membros$cpf_principal <- rep(input$cpf, nrow(membros))
+    }
+    
+    # Filtra membros com parentesco igual a "Filho(a)"
+    filhos <- membros[tolower(membros$parentesco) == "filho(a)", ]
+    
+    # Conta quantos filhos existem
+    dados$quantos_filhos <- nrow(filhos)
+    
+    calcular_idade <- function(data_nascimento) {
+      hoje <- Sys.Date()
+      idade <- as.period(interval(start = data_nascimento, end = hoje))$year
+      return(idade)
+    }
+      
+
+    dados <- data.frame(
+      # Aba Rede
+      data_hora_sistema     = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+      tempo_preenchimento   = round(as.numeric(tempo_total), 2),
+      email_preenchedor     = usuarios_validos$email_institucional[usuarios_validos$usuario == usuario_logado()],
+      unidade               = safe(input$rede),
+      profissional          = login_status$nome,
+      #profissional2         = safe(input$),
+      # Aba Dados Iniciais
+      data_hora_informada   = safe(input$data_manual),
+      nome_completo         = safe(input$nome),
+      cpf                   = safe(input$cpf),
+      telefone              = safe(input$telefone),
+      rg                    = safe(input$rg),
+      update_doc            = safe(input$documento),
+      tipo_demanda          = safe(input$demanda),
+      rede_intersetorial    = safe(input$rede_intersetorial),
+      obs_localidade        = safe(input$obs_localidade),
+      rede_semmu            = safe(input$rede_semmu),
+      # Aba Notificação
+      nome_social           = safe(input$nome_social),
+      data_nascimento       = safe(input$data_nascimento),
+      idade                 = calcular_idade(lubridate::dmy(input$data_nascimento)),
+      naturalidade          = safe(if (input$naturalidade == "Outros") input$naturalidade_outros else input$naturalidade),
+      uf                    = safe(if (input$uf == "Outros") input$uf_outros else input$uf),
+      gestante              = safe(input$gestante),
+      raca_cor              = safe(input$raca_cor),
+      escolaridade          = safe(input$escolaridade),
+      atividade_laboral     = safe(if (input$atividade_laboral == "Outros") input$atividade_outros else input$atividade_laboral),
+      estado_civil          = safe(input$estado_civil),
+      deficiencia           = safe(if (input$deficiencia == "Outros") input$deficiencia_outros else input$deficiencia),
+      orientacao_sexual     = safe(if (input$orientacao_sexual == "Outros") input$orientacao_outros else input$orientacao_sexual),
+      identidade_genero     = safe(if (input$identidade_genero == "Outros") input$identidade_outros else input$identidade_genero),
+      # Aba Residência
+      municipio_residencia  = safe(if (input$municipio_residencia == "Outros") input$municipio_outros else input$municipio_residencia),
+      bairro                = safe(input$bairro),
+      logradouro            = safe(input$logradouro),
+      numero                = safe(input$numero),
+      quadra                = safe(input$quadra),
+      lote                  = safe(input$lote),
+      complemento           = safe(input$complemento),
+      polo_visitado         = safe(polo),
+      zona_residencia       = safe(input$zona),
+      quantos_filhos        = if (nrow(membros) == 0) 0 else sum(grepl("^filh", tolower(membros$parentesco))),
+      condicao_moradia      = safe(input$condicao_moradia),
+      ubs_referencia        = safe(input$ubs_referencia),
+      #Aba Renda
+      renda_media           = safe(input$renda_media),
+      beneficio_social      = safe(input$beneficio_social),
+      valor_beneficio       = safe(input$valor_beneficio),
+      valor_renda_propria   = safe(input$valor_renda_propria),
+      valor_renda_pensao    = safe(input$valor_renda_pensao),
+      stringsAsFactors      = FALSE
+    )
+    
+    tryCatch({
+      server_envio(dados, membros)
+      print("✅ Envio executado com sucesso")
+      print("📌 CPF enviado:"); print(dados$cpf)
+      
+      showModal(modalDialog(
+        title = "✅ Cadastro enviado com sucesso",
+        paste("CPF:", input$cpf, "| Membros:", nrow(membros)),
+        easyClose = TRUE,
+        footer = tagList(
+          modalButton("Fechar"),
+          actionButton("iniciar_novo", "Novo Cadastro", class = "btn btn-primary")
+        )
+      ))
+      
+      tela_atual("painel")
+    }, error = function(e) {
+      showModal(modalDialog(
+        title = "❌ Erro ao salvar",
+        paste("Ocorreu um erro ao tentar salvar os dados:", conditionMessage(e)),
+        easyClose = TRUE,
+        footer = modalButton("Fechar")
+      ))
     })
+  })
+  
+  observeEvent(input$iniciar_novo, {
+    tela_atual("formulario")
+    updateTabsetPanel(session, "abas", selected = "Rede de Atendimento SEMMU")
+    tempo_inicio(Sys.time())
+    dados_familia$tabela <- data.frame()
     
-    # Se quiser salvar em banco, planilha ou API, chame aqui a função de envio real
-    # ex: enviarFormulario(input, dados_familia$tabela)
+    # Limpa campos principais (adicione os IDs que quiser resetar)
+    limparFormulario(session, c("nome", "cpf", "telefone", "data_manual"))
   })
 }

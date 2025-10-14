@@ -6,6 +6,8 @@ aba_dados_iniciais <- tabPanel(
     class = "aba-conteudo",
     style = "padding: 30px;",
     
+    h3("📝 Dados Iniciais de Cadastro"),
+    
     labelObrigatorio("Data e hora do Cadastro"),
     textInput("data_manual", NULL, placeholder = "21/09/2025 13:01"),
     
@@ -31,26 +33,26 @@ aba_dados_iniciais <- tabPanel(
       "Encaminhamento Interno da Rede SEMMU"
     )),
     
-    # 🔄 Subseções dinâmicas
+    # 🔄 Campos condicionais
     conditionalPanel(
       condition = "input.demanda == 'Encaminhada pela Rede Intersetorial'",
       tags$hr(),
       selectInput(
         "rede_intersetorial",
-        labelObrigatorio(tags$label(strong("Rede Intersetorial"))),
+        labelObrigatorio("Rede Intersetorial"),
         choices = c(
-          "PARAPAZ", "CREAS", "CRAS", "UBS", "HGP", "UBS", "UPA",
+          "PARAPAZ", "CREAS", "CRAS", "UBS", "HGP", "UPA",
           "Conselho Tutelar", "DEAM", "DEACA", "Ministério Público",
           "SEHAB", "SEMAS", "SEMSI", "SEMED", "Outros"
-        ),
-        conditionalPanel(
-          condition = "input.rede_intersetorial == 'Outros'",
-          textInput("rede_outros", tags$strong("Informe a rede intersetorial"))
-        ),
+        )
+      ),
+      conditionalPanel(
+        condition = "input.rede_intersetorial == 'Outros'",
+        textInput("rede_outros", "Informe a rede intersetorial")
       ),
       textInput(
         "obs_localidade",
-        tags$label(strong("Observações de Localidade")),
+        "Observações de Localidade",
         placeholder = "Ex: Bairro distante, zona rural, etc."
       )
     ),
@@ -60,7 +62,7 @@ aba_dados_iniciais <- tabPanel(
       tags$hr(),
       selectInput(
         "rede_semmu",
-        labelObrigatorio(tags$label(strong("Rede SEMMU"))),
+        labelObrigatorio("Rede SEMMU"),
         choices = c(
           "CRM", "Casa de Mainha", "Casa Abrigo",
           "SEMMU Até Você", "CEAJUM", "Patrulha Maria da Penha"
