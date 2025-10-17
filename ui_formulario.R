@@ -19,6 +19,9 @@ ui_formulario <- fluidPage(
     # 🟣 Cabeçalho institucional
     cabecalho_global(),
     
+    # 🔷 Informações do usuário no cabeçalho
+    info_usuario_global(), 
+    
     # 📄 Conteúdo principal com abas
     div(
       class = "main-container",

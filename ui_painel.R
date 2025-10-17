@@ -9,11 +9,13 @@ painel_ui <- fluidPage(
     # 🟣 Cabeçalho institucional
     cabecalho_global(),
     
+    # 🔷 Informações do usuário no cabeçalho
+    info_usuario_global(), 
+    
     # 📄 Conteúdo principal
     div(
       class = "painel-conteudo",
       style = "flex: 1; padding: 40px; text-align: center;",
-      textOutput("nome_usuario"),  # Saudação personalizada
       
       h3(tags$strong("Bem-vindo ao Formulário de Cadastro Inicial")),
       p("Este formulário é utilizado para coletar dados sociodemográficos das mulheres atendidas pela Rede de Atendimento SEMMU..."),

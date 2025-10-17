@@ -27,7 +27,6 @@ if(length(novos)) install.packages(novos)
 lapply(pacotes, require, character.only = TRUE)
 
 
-
 # 🧠 Funções auxiliares e layout
 source("utils/helpers.R")           # Rótulos, salvamento, tratamento de nulos
 source("utils/validacao.R")         # Validações específicas por aba

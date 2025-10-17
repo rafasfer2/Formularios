@@ -54,7 +54,7 @@ aba_residencia <- tabPanel(
       column(
         4,
         selectInput("ubs_referencia", tags$strong("UBS de Referência"), choices = c(
-          "", "UBS Novo Brasil", "UBS Nova Carajás", "UBS VS 10", "UBS Casas Populares 2",
+          "Não há referência", "UBS Novo Brasil", "UBS Nova Carajás", "UBS VS 10", "UBS Casas Populares 2",
           "UBS Liberdade I", "Posto de Saúde Liberdade 1", "UBS Guanabara", "UBS Fortaleza",
           "UBS Cidade Nova", "UBS Jardim Canadá", "UBS Grazielly Caetano", "Outros"
         )),
@@ -64,8 +64,6 @@ aba_residencia <- tabPanel(
           tagList(
             tags$label(tags$strong(tags$em("Informe o nome da UBS")), style = "color: #0072B2;"),
             textInput("ubs_outros", label = NULL),
-            tags$label(tags$strong(tags$em("Informe o bairro da UBS")), style = "color: #0072B2;"),
-            textInput("ubs_bairro", label = NULL)
           )
         ),
       ),

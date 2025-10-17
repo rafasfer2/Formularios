@@ -1,5 +1,5 @@
 -- Tabela principal com dados consolidados do formulário
-CREATE TABLE IF NOT EXISTS cadastro_completo (
+CREATE TABLE cadastro_completo (
   id SERIAL PRIMARY KEY,
   data_hora_sistema TIMESTAMP,
   tempo_preenchimento NUMERIC,
@@ -49,11 +49,13 @@ CREATE TABLE IF NOT EXISTS cadastro_completo (
   valor_renda_pensao NUMERIC
 );
 
+
 -- Tabela de composição familiar vinculada ao cadastro principal
 CREATE TABLE IF NOT EXISTS composicao_familiar (
   id SERIAL PRIMARY KEY,
   id_cadastro INTEGER REFERENCES cadastro_completo(id),
-  cpf_principal TEXT NOT NULL,
+  nome_completo TEXT NOT NULL,
+  cpf TEXT NOT NULL,
   nome TEXT,
   sexo TEXT,
   parentesco TEXT,

@@ -1,31 +1,34 @@
-server_login <- function(input, output, session, tela_atual, login_status) {
-  observeEvent(input$botao_login, {
+server_login <- function(input, output, session, tela_atual, login_status, usuario_logado) {
+  observeEvent(input$entrar, {
     usuario_digitado <- input$usuario
     senha_digitada <- input$senha
     
-    # Verifica se o usuário existe
-    usuario_encontrado <- usuarios_validos %>%
-      filter(usuario == usuario_digitado)
+    con <- conectar_bd()
+    
+    query <- "SELECT nome, email_institucional, unidade, funcao, senha_hash, usuario FROM usuarios WHERE usuario = $1 AND ativo = 1"
+    usuario_encontrado <- DBI::dbGetQuery(con, query, params = list(usuario_digitado))
+    
+    DBI::dbDisconnect(con)
     
     if (nrow(usuario_encontrado) == 1) {
       senha_hash <- digest::digest(senha_digitada, algo = "sha256")
       
-      if (senha_hash == usuario_encontrado$senha) {
-        # Autenticação bem-sucedida
+      if (senha_hash == usuario_encontrado$senha_hash) {
         login_status$autenticado <- TRUE
         login_status$nome <- usuario_encontrado$nome
-        login_status$perfil <- usuario_encontrado$perfil
+        login_status$email <- usuario_encontrado$email_institucional
+        login_status$unidade <- usuario_encontrado$unidade
+        login_status$funcao <- usuario_encontrado$funcao
+        login_status$perfil <- NULL
         
-        showModal(modalDialog(
-          title = "Login realizado com sucesso!",
-          paste("Bem-vindo(a),", usuario_encontrado$nome),
-          easyClose = TRUE,
-          footer = NULL
-        ))
+        # Armazena o objeto completo do usuário para uso posterior
+        login_status$dados_usuario <- usuario_encontrado
+        
+        # Atualiza o usuário logado reativo
+        usuario_logado(usuario_encontrado$usuario)
         
         tela_atual("painel")
       } else {
-        # Senha incorreta
         showModal(modalDialog(
           title = "Erro de autenticação",
           "Senha incorreta. Tente novamente.",
@@ -34,7 +37,6 @@ server_login <- function(input, output, session, tela_atual, login_status) {
         ))
       }
     } else {
-      # Usuário não encontrado
       showModal(modalDialog(
         title = "Usuário não encontrado",
         "Verifique o nome de usuário digitado.",

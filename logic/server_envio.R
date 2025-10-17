@@ -1,6 +1,8 @@
 server_envio <- function(input, output, session, tempo_inicio, email_usuario) {
   observeEvent(input$enviar_formulario, {
     tryCatch({
+      print("Botão enviar clicado")  # Debug
+      
       # Tempo de preenchimento
       tempo_final <- Sys.time()
       tempo_preenchimento <- as.numeric(difftime(tempo_final, tempo_inicio(), units = "mins"))
@@ -48,16 +50,16 @@ server_envio <- function(input, output, session, tempo_inicio, email_usuario) {
         sincronizar_familia()
       }, silent = TRUE)
       
-      # Mensagem de sucesso
+      # Mensagem de sucesso com botão que fecha o modal e reinicia o formulário
       showModal(modalDialog(
         title = "Cadastro enviado com sucesso!",
         "Os dados foram salvos e sincronizados.",
-        easyClose = TRUE,
-        footer = modalButton("OK")
+        easyClose = FALSE,
+        footer = tagList(
+          modalButton("Fechar"),
+          actionButton("fechar_modal", "OK")
+        )
       ))
-      
-      # Reiniciar formulário
-      session$reload()
       
     }, error = function(e) {
       showModal(modalDialog(
@@ -67,5 +69,11 @@ server_envio <- function(input, output, session, tempo_inicio, email_usuario) {
         footer = modalButton("Fechar")
       ))
     })
+  })
+  
+  # Evento para fechar modal e recarregar formulário (registrado uma vez)
+  observeEvent(input$fechar_modal, {
+    removeModal()
+    session$reload()
   })
 }

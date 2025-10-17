@@ -1,4 +1,5 @@
-server_formulario <- function(input, output, session, tela_atual, dados_familia, login_status) {
+server_formulario <- function(input, output, session, tela_atual, dados_familia, login_status, usuario_logado) {
+  
   # ⏱️ Tempo de início do preenchimento
   tempo_inicio <- reactiveVal(Sys.time())
   id_membro <- reactiveVal(1)
@@ -259,9 +260,21 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia,
     limparErros(c("nome", "cpf"))
     erros <- c()
     
+    # Função para salvar dados no banco
+    salvar_dados <- function(dados_forms, dados_familia) {
+      con <- conectar_bd()
+      DBI::dbWriteTable(con, "cadastro_completo", as.data.frame(dados_forms), append = TRUE, row.names = FALSE)
+      if (nrow(dados_familia) > 0) {
+        dados_familia$cpf_principal <- dados_forms$cpf
+        DBI::dbWriteTable(con, "composicao_familiar", dados_familia, append = TRUE, row.names = FALSE)
+      }
+      DBI::dbDisconnect(con)
+    }
+    
     req(tempo_inicio())
     tempo_total <- difftime(Sys.time(), tempo_inicio(), units = "mins")
     
+    # Validação dos campos obrigatórios
     campos_obrigatorios <- list(nome = "Nome Completo", cpf = "CPF")
     for (campo in names(campos_obrigatorios)) {
       if (is.null(input[[campo]]) || input[[campo]] == "") {
@@ -275,6 +288,7 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia,
       return()
     }
     
+    # Determina profissional e polo conforme seleção
     profissional <- switch(input$rede,
                            "CRM (Centro de Referência da Mulher)" = input$profissional_crm,
                            "Casa de Mainha" = input$profissional_mainha,
@@ -291,33 +305,29 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia,
     
     membros <- dados_familia$tabela
     
-    # Garante que todos os membros tenham o CPF principal vinculado corretamente
     if (!"cpf_principal" %in% names(membros) || any(is.na(membros$cpf_principal))) {
       membros$cpf_principal <- rep(input$cpf, nrow(membros))
     }
     
-    # Filtra membros com parentesco igual a "Filho(a)"
     filhos <- membros[tolower(membros$parentesco) == "filho(a)", ]
-    
-    # Conta quantos filhos existem
-    dados$quantos_filhos <- nrow(filhos)
+    quantos_filhos <- nrow(filhos)
     
     calcular_idade <- function(data_nascimento) {
+      if (is.na(data_nascimento) || length(data_nascimento) == 0) {
+        return(NA_integer_)
+      }
       hoje <- Sys.Date()
-      idade <- as.period(interval(start = data_nascimento, end = hoje))$year
+      intervalo <- lubridate::interval(data_nascimento, hoje)
+      idade <- lubridate::as.period(intervalo)$year
       return(idade)
     }
-      
-
+    
     dados <- data.frame(
-      # Aba Rede
       data_hora_sistema     = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
       tempo_preenchimento   = round(as.numeric(tempo_total), 2),
       email_preenchedor     = usuarios_validos$email_institucional[usuarios_validos$usuario == usuario_logado()],
       unidade               = safe(input$rede),
       profissional          = login_status$nome,
-      #profissional2         = safe(input$),
-      # Aba Dados Iniciais
       data_hora_informada   = safe(input$data_manual),
       nome_completo         = safe(input$nome),
       cpf                   = safe(input$cpf),
@@ -328,7 +338,6 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia,
       rede_intersetorial    = safe(input$rede_intersetorial),
       obs_localidade        = safe(input$obs_localidade),
       rede_semmu            = safe(input$rede_semmu),
-      # Aba Notificação
       nome_social           = safe(input$nome_social),
       data_nascimento       = safe(input$data_nascimento),
       idade                 = calcular_idade(lubridate::dmy(input$data_nascimento)),
@@ -342,7 +351,6 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia,
       deficiencia           = safe(if (input$deficiencia == "Outros") input$deficiencia_outros else input$deficiencia),
       orientacao_sexual     = safe(if (input$orientacao_sexual == "Outros") input$orientacao_outros else input$orientacao_sexual),
       identidade_genero     = safe(if (input$identidade_genero == "Outros") input$identidade_outros else input$identidade_genero),
-      # Aba Residência
       municipio_residencia  = safe(if (input$municipio_residencia == "Outros") input$municipio_outros else input$municipio_residencia),
       bairro                = safe(input$bairro),
       logradouro            = safe(input$logradouro),
@@ -352,10 +360,9 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia,
       complemento           = safe(input$complemento),
       polo_visitado         = safe(polo),
       zona_residencia       = safe(input$zona),
-      quantos_filhos        = if (nrow(membros) == 0) 0 else sum(grepl("^filh", tolower(membros$parentesco))),
+      quantos_filhos        = quantos_filhos,
       condicao_moradia      = safe(input$condicao_moradia),
       ubs_referencia        = safe(input$ubs_referencia),
-      #Aba Renda
       renda_media           = safe(input$renda_media),
       beneficio_social      = safe(input$beneficio_social),
       valor_beneficio       = safe(input$valor_beneficio),
@@ -365,20 +372,16 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia,
     )
     
     tryCatch({
-      server_envio(dados, membros)
-      print("✅ Envio executado com sucesso")
-      print("📌 CPF enviado:"); print(dados$cpf)
-      
+      salvar_dados(dados, membros)
       showModal(modalDialog(
         title = "✅ Cadastro enviado com sucesso",
-        paste("CPF:", input$cpf, "| Membros:", nrow(membros)),
-        easyClose = TRUE,
+        paste("CPF:", dados$cpf, "| Membros:", nrow(membros)),
+        easyClose = FALSE,
         footer = tagList(
           modalButton("Fechar"),
           actionButton("iniciar_novo", "Novo Cadastro", class = "btn btn-primary")
         )
       ))
-      
       tela_atual("painel")
     }, error = function(e) {
       showModal(modalDialog(
@@ -391,12 +394,12 @@ server_formulario <- function(input, output, session, tela_atual, dados_familia,
   })
   
   observeEvent(input$iniciar_novo, {
+    removeModal()
     tela_atual("formulario")
     updateTabsetPanel(session, "abas", selected = "Rede de Atendimento SEMMU")
     tempo_inicio(Sys.time())
     dados_familia$tabela <- data.frame()
-    
-    # Limpa campos principais (adicione os IDs que quiser resetar)
     limparFormulario(session, c("nome", "cpf", "telefone", "data_manual"))
   })
+  
 }
